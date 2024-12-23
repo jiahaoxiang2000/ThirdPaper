@@ -8,3 +8,5 @@ consider the combination particular difficulties, if all the design hardware and
 So we can use the existing heterogeneous hardware to accelerate the software implementation of the cipher. Maybe greater way.
 
 We want to use the GPU unit to accelerate the software implementation of the cipher. The GPU unit is a heterogeneous hardware, and it is very suitable for parallel computing. The GPU unit can accelerate the software implementation of the cipher.
+
+more detail can see the [background folder](./background/)
