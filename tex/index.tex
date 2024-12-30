@@ -30,7 +30,7 @@
 
 \begin{document}
 
-\title{GPU}
+\title{High Throughput Implementation of AES on GPUs} 
 
 
 \author{Jiahao Xiang and Lang Li.
@@ -56,17 +56,36 @@
 
 
 \begin{abstract}
-   
+   \textcolor{blue}{The rapid increase in data transfer rates from gigabits per second to terabits per second necessitates efficient computational approaches for high-speed data processing. Traditional software and extended instruction set architectures prove inadequate under these conditions. A GPU-based software implementation of the AES is presented, employing bitslicing to compute substitutions on the fly and thereby reducing cache misses compared with look-up table methods. Additional gains are realized through a permutation optimization that mitigates thread stall time. Experimental results indicate that this implementation achieves throughput in xx.xx terabit-per-second when executed on a single NVIDIA RTX 4090 GPU.
+   } 
+    
 \end{abstract}
 
 \begin{IEEEkeywords}
-  Internet of Things, Software implementation, Block cipher, Bitslicing, SAT.
+   Software implementation, Block cipher, GPU, Bitslicing, SAT.
 \end{IEEEkeywords}
 
+\color{blue}
 \section{Introduction}
 \label{sec:intro}
 
-\cite{Adomnicai2020} aa
+% Growing data volumes necessitate high-throughput encryption schemes to ensure data confidentiality. The Advanced Encryption Standard (AES) remains the most prominent block cipher, with software implementations commonly adopted for flexibility and scalability. 
+
+
+\IEEEPARstart{T}{he} Advanced Encryption Standard (AES) is recognized as a widely adopted symmetric block cipher that underpins secure communication protocols \cite{Daemen2020}. Libraries such as OpenSSL and Libgcrypt rely on T-table-based methods for both encryption and decryption, providing sufficient performance for megabit-per-second (Mbps) workloads \cite{Jancar2024, Marshall2021}. 
+
+However, T-table approaches have been shown to be inadequate when data rates reach gigabit-per-second (Gbps) or terabit-per-second (Tbps) ranges \cite{Li2020}. These higher-speed environments, including data centers, 5G networks, and real-time transactional systems, necessitate more efficient and scalable techniques to maintain throughput while preserving cryptographic security.
+
+\subsection{Motivation}
+
+\subsection{Related Work}
+
+\cite{Lee2022} 
+\subsection{Contributions}
+
+
+
+\color{black}
 
 % \section*{Acknowledgments}
 
