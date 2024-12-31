@@ -1,3 +1,4 @@
-# Writing Style
+# Markdown covert
 
-- change the copy txt of the pdf to the markdown format.
+- transform the pdf copy to markdown format code
+- the math symbols warp by $
