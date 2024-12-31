@@ -7,7 +7,7 @@ here we will introduce the background of the third paper. include following part
 
 ## motivation
 
-the motivation details see the [motivation](./motivation.ipynb) part.
+the motivation details see the [motivation](./motivation.md) part.
 
 ## background survey
 
