@@ -59,7 +59,7 @@
 \end{abstract}
 
 \begin{IEEEkeywords}
-  Software implementation, GPU.
+  Software implementation, GPU, signature algorithm.
 \end{IEEEkeywords}
 
 \section{Introduction}
@@ -67,32 +67,20 @@
 
 % Growing data volumes necessitate high-throughput encryption schemes to ensure data confidentiality. The Advanced Encryption Standard (AES) remains the most prominent block cipher, with software implementations commonly adopted for flexibility and scalability.
 
-\IEEEPARstart{T}{he} Advanced Encryption Standard (AES) is a widely adopted symmetric block cipher that provides essential security in diverse communication protocols \cite{Daemen2020}. Commonly used libraries such as OpenSSL and Libgcrypt employ T-table-based methods for both encryption and decryption, delivering adequate performance for megabit-per-second workloads \cite{Jancar2024, Marshall2021}.
+\color{blue}
 
-Performance shortcomings arise when data rates exceed gigabit-per-second thresholds \cite{Li2020}. Such high-throughput scenarios, including data centers and 5G networks, require more efficient and scalable solutions to preserve both speed and cryptographic strength.
+\IEEEPARstart{T}{he} quantum computers leverage quantum-mechanical phenomena to process data, raising significant concerns about the resilience of classical cryptographic methods. 
+The security offered by widely deployed public-key cryptosystems, such as RSA and ECC, is jeopardized by Shor's algorithm \cite{Shor1994}, motivating comprehensive research on alternative cryptographic solutions. In response, the National Institute of Standards and Technology (NIST) initiated the Post-Quantum Cryptography (PQC) standardization process to develop novel schemes that withstand quantum computing capabilities \cite{NIST2016}.
+
+SPHINCS\textsuperscript{+} is a representative stateless hash-based signature scheme and a finalist in the ongoing NIST standardization effort \cite{Turan}. Long-term security against advanced quantum attacks is targeted by employing robust cryptographic hash functions \cite{Bernstein2019}. The high computational cost of SPHINCS\textsuperscript{+} has motivated further investigations into efficient implementations across CPUs, FPGAs, and GPUs \cite{Joseph2022} to facilitate smooth adoption by organizations transitioning to post-quantum cryptography.
 
 \subsection{Related Work}
-
-The parallel structure of GPUs supports the simultaneous execution of multiple threads, which significantly increases performance in comparison with standard CPU-based operations. Table~\ref{tab:relared_work} summarizes representative AES CTR mode implementations on GPUs. In \cite{Hajihassani2019}, the overhead of the ShiftRows stage is minimized by rearranging input data, and a hardware-based S-box replaces look-up table resources in the Substitute Bytes stage. In \cite{Lee2022}, the necessity to embed round keys at compile time is eliminated, allowing more flexible code generation. This approach achieves 9\% higher encryption throughput than bit-sliced references for CTR modes.
-
-\begin{table}
-  \caption{Related Work on AES CTR mode Implementations on GPUs}
-  \label{tab:relared_work}
-  \centering
-  \begin{tabular}{cccc}
-    \toprule
-    \textbf{Ref} & \textbf{Throughput (Gbps)} & \textbf{Platform} & \textbf{Year} \\
-    \midrule
-    \cite{Hajihassani2019} & 1478 & Tesla V100 & 2019 \\
-    \cite{Lee2022}        & 1489 & RTX 3080   & 2022 \\
-    Ours     & --   & RTX 4090         & --   \\
-    \bottomrule
-  \end{tabular}
-\end{table}
 
 \subsection{Motivation}
 
 \subsection{Contributions}
+
+\color{black}
 
 % \section*{Acknowledgments}
 
