@@ -27,19 +27,16 @@
 \newtheorem{proposition}{Proposition}
 \usepackage{listings}
 
-
 \begin{document}
 
-\title{High Throughput Implementation of AES on GPUs} 
-
+\title{Efficient Implementations of SPHINCS\textsuperscript{+} on GPUs}
 
 \author{Jiahao Xiang and Lang Li.
-        % <-this % stops a space
+  % <-this % stops a space
 
-\thanks{This work is supported by the Hunan Provincial Natural Science Foundation of China (2022JJ30103), Postgraduate Scientific Research Innovation Project of Hunan Province (CX20240977), “the 14th Five-Year Plan” Key Disciplines and Application-oriented Special Disciplines of Hunan Province (Xiangjiaotong [2022] 351), the Science and Technology Innovation Program of Hunan Province (2016TP1020).}
+  \thanks{This work is supported by the Hunan Provincial Natural Science Foundation of China (2022JJ30103), Postgraduate Scientific Research Innovation Project of Hunan Province (CX20240977), “the 14th Five-Year Plan” Key Disciplines and Application-oriented Special Disciplines of Hunan Province (Xiangjiaotong [2022] 351), the Science and Technology Innovation Program of Hunan Province (2016TP1020).}
 
-
-\thanks{Jiahao Xiang and Lang Li are with the Hunan Provincial Key Laboratory of Intelligent Information Processing and Application, Hengyang Normal University, Hengyang 421002, China, and also with the College of Computer Science and Technology, Hengyang Normal University, Hengyang 421002, China (e-mail: jiahaoxiang2000@gmail.com; lilang911@126.com).}% <-this % stops a space
+  \thanks{Jiahao Xiang and Lang Li are with the Hunan Provincial Key Laboratory of Intelligent Information Processing and Application, Hengyang Normal University, Hengyang 421002, China, and also with the College of Computer Science and Technology, Hengyang Normal University, Hengyang 421002, China (e-mail: jiahaoxiang2000@gmail.com; lilang911@126.com).}% <-this % stops a space
 }
 % \thanks{Manuscript received April 19, 2021; revised August 16, 2021.}}
 % \thanks{Manuscript received }}
@@ -54,23 +51,20 @@
 
 \maketitle
 
-
 \begin{abstract}
-   \textcolor{blue}{The rapid increase in data transfer rates from gigabits per second to terabits per second necessitates efficient computational approaches for high-speed data processing. Traditional software and extended instruction set architectures prove inadequate under these conditions. A GPU-based software implementation of the AES is presented, employing bitslicing to compute substitutions on the fly and thereby reducing cache misses compared with look-up table methods. Additional gains are realized through a permutation optimization that mitigates thread stall time. Experimental results indicate that this implementation achieves throughput in xx.xx terabit-per-second when executed on a single NVIDIA RTX 4090 GPU.
-   } 
-    
+  \textcolor{blue}{The rapid increase in data transfer rates from gigabits per second to terabits per second necessitates efficient computational approaches for high-speed data processing. Traditional software and extended instruction set architectures prove inadequate under these conditions. A GPU-based software implementation of the AES is presented, employing bitslicing to compute substitutions on the fly and thereby reducing cache misses compared with look-up table methods. Additional gains are realized through a permutation optimization that mitigates thread stall time. Experimental results indicate that this implementation achieves throughput in xx.xx terabit-per-second when executed on a single NVIDIA RTX 4090 GPU.
+  }
+
 \end{abstract}
 
 \begin{IEEEkeywords}
-   Software implementation, Block cipher, GPU, Bitslicing, SAT.
+  Software implementation, Block cipher, GPU, Bitslicing, SAT.
 \end{IEEEkeywords}
 
-\color{blue}
 \section{Introduction}
 \label{sec:intro}
 
-% Growing data volumes necessitate high-throughput encryption schemes to ensure data confidentiality. The Advanced Encryption Standard (AES) remains the most prominent block cipher, with software implementations commonly adopted for flexibility and scalability. 
-
+% Growing data volumes necessitate high-throughput encryption schemes to ensure data confidentiality. The Advanced Encryption Standard (AES) remains the most prominent block cipher, with software implementations commonly adopted for flexibility and scalability.
 
 \IEEEPARstart{T}{he} Advanced Encryption Standard (AES) is a widely adopted symmetric block cipher that provides essential security in diverse communication protocols \cite{Daemen2020}. Commonly used libraries such as OpenSSL and Libgcrypt employ T-table-based methods for both encryption and decryption, delivering adequate performance for megabit-per-second workloads \cite{Jancar2024, Marshall2021}.
 
@@ -81,31 +75,25 @@ Performance shortcomings arise when data rates exceed gigabit-per-second thresho
 The parallel structure of GPUs supports the simultaneous execution of multiple threads, which significantly increases performance in comparison with standard CPU-based operations. Table~\ref{tab:relared_work} summarizes representative AES CTR mode implementations on GPUs. In \cite{Hajihassani2019}, the overhead of the ShiftRows stage is minimized by rearranging input data, and a hardware-based S-box replaces look-up table resources in the Substitute Bytes stage. In \cite{Lee2022}, the necessity to embed round keys at compile time is eliminated, allowing more flexible code generation. This approach achieves 9\% higher encryption throughput than bit-sliced references for CTR modes.
 
 \begin{table}
-    \caption{Related Work on AES CTR mode Implementations on GPUs}
-    \label{tab:relared_work}
-    \centering
-    \begin{tabular}{cccc}
-        \toprule
-        \textbf{Ref} & \textbf{Throughput (Gbps)} & \textbf{Platform} & \textbf{Year} \\
-        \midrule
-        \cite{Hajihassani2019} & 1478 & Tesla V100 & 2019 \\
-        \cite{Lee2022}        & 1489 & RTX 3080   & 2022 \\
-        Ours     & --   & RTX 4090         & --   \\
-        \bottomrule
-    \end{tabular}
+  \caption{Related Work on AES CTR mode Implementations on GPUs}
+  \label{tab:relared_work}
+  \centering
+  \begin{tabular}{cccc}
+    \toprule
+    \textbf{Ref} & \textbf{Throughput (Gbps)} & \textbf{Platform} & \textbf{Year} \\
+    \midrule
+    \cite{Hajihassani2019} & 1478 & Tesla V100 & 2019 \\
+    \cite{Lee2022}        & 1489 & RTX 3080   & 2022 \\
+    Ours     & --   & RTX 4090         & --   \\
+    \bottomrule
+  \end{tabular}
 \end{table}
 
 \subsection{Motivation}
 
-
 \subsection{Contributions}
 
-
-
-\color{black}
-
 % \section*{Acknowledgments}
-
 
 % {\appendix[Proof of the Zonklar Equations]
 % Use $\backslash${\tt{appendix}} if you have a single appendix:
@@ -114,8 +102,6 @@ The parallel structure of GPUs supports the simultaneous execution of multiple t
 % You must declare a $\backslash${\tt{section}} before using any $\backslash${\tt{subsection}} or using $\backslash${\tt{label}} ($\backslash${\tt{appendices}} by itself
 %  starts a section numbered zero.)}
 
-
-
 %{\appendices
 %\section*{Proof of the First  Equation}
 %Appendix one text goes here.
@@ -123,23 +109,20 @@ The parallel structure of GPUs supports the simultaneous execution of multiple t
 %\section*{Proof of the Second  Equation}
 %Appendix two text goes here.}
 
-
- % argument is your BibTeX string definitions and bibliography database(s)
+% argument is your BibTeX string definitions and bibliography database(s)
 \bibliography{biblio}
 
 \bibliographystyle{IEEEtran}
 
-
 % \newpage
-
 
 % \bf{If you include a photo:}\vspace{-33pt}
 \begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{./fig/slef.jpg}}]{Jiahao Xiang}
-    is pursuing a Master's degree in Electronic Information at Hengyang Normal University, China. His research focuses on cryptographic engineering and efficient implementations of block ciphers on resource-constrained devices. Publications include works on lightweight cryptography optimization and contributions to open-source cryptographic projects.
+  is pursuing a Master's degree in Electronic Information at Hengyang Normal University, China. His research focuses on cryptographic engineering and efficient implementations of block ciphers on resource-constrained devices. Publications include works on lightweight cryptography optimization and contributions to open-source cryptographic projects.
 \end{IEEEbiography}
 
 \begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{./fig/boss.png}}]{Lang Li}
-    received his Ph.D. and Master's degrees in computer science from Hunan University, Changsha, China, in 2010 and 2006, respectively, and earned his B.S. degree in circuits and systems from Hunan Normal University in 1996. Since 2011, he has been working as a professor in the College of Computer Science and Technology at the Hengyang Normal University, Hengyang, China. He has research interests in embedded system and information security.  
+  received his Ph.D. and Master's degrees in computer science from Hunan University, Changsha, China, in 2010 and 2006, respectively, and earned his B.S. degree in circuits and systems from Hunan Normal University in 1996. Since 2011, he has been working as a professor in the College of Computer Science and Technology at the Hengyang Normal University, Hengyang, China. He has research interests in embedded system and information security.
 \end{IEEEbiography}
 
 % \vspace{11pt}
@@ -150,13 +133,9 @@ The parallel structure of GPUs supports the simultaneous execution of multiple t
 % \end{IEEEbiographynophoto}
 
 % \begin{IEEEbiographynophoto}{Lang Li}
-%  received his Ph.D. and Master's degrees in computer science from Hunan University, Changsha, China, in 2010 and 2006, respectively, and earned his B.S. degree in circuits and systems from Hunan Normal University in 1996. Since 2011, he has been working as a professor in the College of Computer Science and Technology at the Hengyang Normal University, Hengyang, China. He has research interests in embedded system and information security.  
+%  received his Ph.D. and Master's degrees in computer science from Hunan University, Changsha, China, in 2010 and 2006, respectively, and earned his B.S. degree in circuits and systems from Hunan Normal University in 1996. Since 2011, he has been working as a professor in the College of Computer Science and Technology at the Hengyang Normal University, Hengyang, China. He has research interests in embedded system and information security.
 % \end{IEEEbiographynophoto}
-
-
 
 \vfill
 
 \end{document}
-
-
