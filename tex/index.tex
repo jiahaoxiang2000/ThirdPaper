@@ -52,13 +52,14 @@
 \maketitle
 
 \begin{abstract}
-  \textcolor{blue}{The rapid increase in data transfer rates from gigabits per second to terabits per second necessitates efficient computational approaches for high-speed data processing. Traditional software and extended instruction set architectures prove inadequate under these conditions. A GPU-based software implementation of the AES is presented, employing bitslicing to compute substitutions on the fly and thereby reducing cache misses compared with look-up table methods. Additional gains are realized through a permutation optimization that mitigates thread stall time. Experimental results indicate that this implementation achieves throughput in xx.xx terabit-per-second when executed on a single NVIDIA RTX 4090 GPU.
+  \textcolor{blue}{
+    The Post-Quantum Cryptography (PQC) standardization process has led to the development of SPHINCS\textsuperscript{+}, a stateless hash-based signature scheme that provides long-term security. The high computational cost of SPHINCS\textsuperscript{+} has motivated research into efficient implementations on various platforms. In this work, we present a GPU-based implementation of SPHINCS\textsuperscript{+} that achieves high throughput while maintaining security guarantees. Our implementation leverages the parallel processing capabilities of GPUs to accelerate the signature generation process. We evaluate the performance of our implementation on an NVIDIA RTX 4090 GPU and demonstrate that it can achieve a throughput of xxx for the SPHINCS\textsuperscript{+} signature generation. Our results show that GPUs can be an effective platform for accelerating SPHINCS\textsuperscript{+} and other post-quantum cryptographic schemes.
   }
 
 \end{abstract}
 
 \begin{IEEEkeywords}
-  Software implementation, Block cipher, GPU, Bitslicing, SAT.
+  Software implementation, GPU.
 \end{IEEEkeywords}
 
 \section{Introduction}
