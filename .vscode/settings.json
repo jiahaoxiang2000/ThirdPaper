@@ -1,3 +1,10 @@
 {
-  "cSpell.words": ["bitsliced", "Bitslicing", "Gbps", "SPHINCS"]
+  "cSpell.words": [
+    "bitsliced",
+    "Bitslicing",
+    "CUDA",
+    "CUSPX",
+    "Gbps",
+    "SPHINCS"
+  ]
 }
