@@ -5,6 +5,7 @@
     "CUDA",
     "CUSPX",
     "Gbps",
+    "Merkle",
     "SPHINCS"
   ]
 }
