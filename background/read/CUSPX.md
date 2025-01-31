@@ -28,3 +28,29 @@ Our design faces three challenges.
 - GPU efficient implementation: It is a challenge to make $SPHINCS+$ fully utilizes the hardware resources on the GPU.
 
 > the challenges not close related to the $SPHINCS+$ algorithm itself. It is the all parallel computing challenges.
+
+- We propose CUSPX (CUDA SPHINCS+), the first large-scale parallel implementation for standardized general-purpose HBS. Three parallel schemes are designed for various application scenarios: algorithmic parallelism, data parallelism, and hybrid parallelism. Our code will be open-sourced after the article is accepted.
+- We present a three-level parallel framework: multi-tree, inter-node, and intra-node levels, which can be used individually or in combination. Merkle tree parallel construction algorithms for arbitrary parallel scales are proposed.
+- We design a general-purpose hybrid parallel scheme for HBS. CUSPX understands task parallelism as a higher-level existence than the three-level parallel framework, that is, hybrid parallelism of CUSPX is a _four-level parallel framework_. Moreover, we design four kinds of load-balancing schemes for $WOTS+$ and two for $FORS$ trees.
+
+## 2. Preliminaries
+
+### 2.1 Digital Signature Mechanisms
+
+| Terms          | Meanings                                             |
+| -------------- | ---------------------------------------------------- |
+| pk, sk, sig    | Public key, private key, and signature of $SPHINCS+$ |
+| H, n           | A hash operation and its output size in bytes        |
+| wotsPk, wotsSk | Secret key and public key of $WOTS+$                 |
+| wotsSig        | Signature of $WOTS+$                                 |
+| forsPk, forsSk | Secret key and public key of $FORS+$                 |
+| forsSig        | Signature of $FORS+$                                 |
+| h, d           | Height and number of layers of the hypertree         |
+| h' = h/d       | Height of a single-layer tree                        |
+| w              | Length of a Winternitz chain                         |
+| len            | Number of n-byte strings in OTS                      |
+| msg, m         | Message digest and its length in bytes for DSA       |
+| hmsg, md       | Message and its digest for hash functions            |
+| a, k           | Number and height of trees in $FORS$                 |
+| addr           | A 32-byte data structure                             |
+| OptRand        | A n-byte string used to counter side-channel attacks |
