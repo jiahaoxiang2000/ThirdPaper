@@ -35,7 +35,7 @@ Our design faces three challenges.
 
 ## 2. Preliminaries
 
-### 2.1 Digital Signature Mechanisms
+### 2.2 Review of SPHINCS+
 
 | Terms          | Meanings                                             |
 | -------------- | ---------------------------------------------------- |
