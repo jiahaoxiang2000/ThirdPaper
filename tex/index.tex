@@ -3,9 +3,6 @@
 \usepackage{algorithmic}
 \usepackage{algorithm}
 \usepackage{amssymb}
-% Remove this incorrect line:
-%\usepackage{arragit@github.com:jiahaoxiang2000/ThirdPaper.gity}
-% Add array package instead if needed:
 \usepackage{array}
 \usepackage[caption=false,font=normalsize,labelfont=sf,textfont=sf]{subfig}
 \usepackage{textcomp}
@@ -16,12 +13,7 @@
 \usepackage{cite}
 \usepackage{xcolor}
 \hyphenation{op-tical net-works semi-conduc-tor IEEE-Xplore}
-
-% updated with editorial comments 8/9/2021
-% not show the red box
-% \usepackage[hidelinks]{hyperref}
 \usepackage{hyperref}
-
 \usepackage{booktabs} % for \hline
 \renewcommand{\algorithmicrequire}{\textbf{Input:}}
 \renewcommand{\algorithmicensure}{\textbf{Output:}}
@@ -36,7 +28,6 @@
 \title{Efficient Implementations of SPHINCS\textsuperscript{+} on GPUs}
 
 \author{Jiahao Xiang and Lang Li.
-  % <-this % stops a space
 
   \thanks{This work is supported by the Hunan Provincial Natural Science Foundation of China (2022JJ30103), Postgraduate Scientific Research Innovation Project of Hunan Province (CX20240977), “the 14th Five-Year Plan” Key Disciplines and Application-oriented Special Disciplines of Hunan Province (Xiangjiaotong [2022] 351), the Science and Technology Innovation Program of Hunan Province (2016TP1020).}
 
@@ -68,8 +59,6 @@
 \section{Introduction}
 \label{sec:intro}
 
-% Growing data volumes necessitate high-throughput encryption schemes to ensure data confidentiality. The Advanced Encryption Standard (AES) remains the most prominent block cipher, with software implementations commonly adopted for flexibility and scalability.
-
 \IEEEPARstart{T}{he} quantum computers leverage quantum-mechanical phenomena to process data, raising significant concerns about the resilience of classical cryptographic methods.
 The security offered by widely deployed public-key cryptosystems, such as RSA and ECC, is jeopardized by Shor's algorithm \cite{Shor1994}, motivating comprehensive research on alternative cryptographic solutions. In response, the National Institute of Standards and Technology (NIST) initiated the Post-Quantum Cryptography (PQC) standardization process to develop novel schemes that withstand quantum computing capabilities \cite{NIST2016}.
 
@@ -80,6 +69,14 @@ SPHINCS\textsuperscript{+} is a representative stateless hash-based signature sc
 \subsection{Motivation}
 
 \subsection{Contributions}
+
+\section{Preliminaries}
+
+\section{GPU-based Implementation of \texorpdfstring{SPHINCS\textsuperscript{+}}{SPHINCS+}}
+
+\section{Performance Evaluation}
+
+\section{Conclusion}
 
 % \section*{Acknowledgments}
 
