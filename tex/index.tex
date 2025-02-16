@@ -64,7 +64,11 @@ The security offered by widely deployed public-key cryptosystems, such as RSA an
 
 SPHINCS\textsuperscript{+} is a representative stateless hash-based signature scheme and a finalist in the ongoing NIST standardization effort \cite{Turan}. Long-term security against advanced quantum attacks is targeted by employing robust cryptographic hash functions \cite{Bernstein2019}. The high computational cost of SPHINCS\textsuperscript{+} has motivated further investigations into efficient implementations across CPUs, FPGAs, and GPUs \cite{Joseph2022} to facilitate smooth adoption by organizations transitioning to post-quantum cryptography.
 
+\color{blue}
+
 \subsection{Related Work}
+
+Several prior studies have explored the efficient implementations of post-quantum signature schemes on various platforms. The work in~\cite{Joseph2022} has provided initial investigations into GPU-based implementations. Additionally, CUSPX~\cite{Wang2025} has been introduced, demonstrating the first large-scale parallel implementation of SPHINCS\textsuperscript{+}. CUSPX employs a three-level parallelism framework—integrating algorithmic, data, and hybrid strategies and introduces novel parallel Merkle tree construction algorithms combined with multiple load-balancing approaches. These contributions have significantly advanced the state-of-the-art in the efficient implementation of SPHINCS\textsuperscript{+}.
 
 \subsection{Motivation}
 
@@ -77,6 +81,8 @@ SPHINCS\textsuperscript{+} is a representative stateless hash-based signature sc
 \section{Performance Evaluation}
 
 \section{Conclusion}
+
+\color{black}
 
 % \section*{Acknowledgments}
 
