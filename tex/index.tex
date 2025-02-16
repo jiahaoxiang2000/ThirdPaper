@@ -14,6 +14,12 @@
 \usepackage{xcolor}
 \hyphenation{op-tical net-works semi-conduc-tor IEEE-Xplore}
 \usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,   % Enable colored links
+  linkcolor=blue,    % Set internal links to blue
+  citecolor=blue,    % Set citation links to blue
+  urlcolor=blue      % Set URL links to blue
+}
 \usepackage{booktabs} % for \hline
 \renewcommand{\algorithmicrequire}{\textbf{Input:}}
 \renewcommand{\algorithmicensure}{\textbf{Output:}}
@@ -67,6 +73,8 @@ SPHINCS\textsuperscript{+} is a representative stateless hash-based signature sc
 \color{blue}
 
 \subsection{Related Work}
+
+% TODO the related need to update, have errors citation.
 
 Several prior studies have explored the efficient implementations of post-quantum signature schemes on various platforms. The work in~\cite{Joseph2022} has provided initial investigations into GPU-based implementations. Additionally, CUSPX~\cite{Wang2025} has been introduced, demonstrating the first large-scale parallel implementation of SPHINCS\textsuperscript{+}. CUSPX employs a three-level parallelism framework—integrating algorithmic, data, and hybrid strategies and introduces novel parallel Merkle tree construction algorithms combined with multiple load-balancing approaches. These contributions have significantly advanced the state-of-the-art in the efficient implementation of SPHINCS\textsuperscript{+}.
 
