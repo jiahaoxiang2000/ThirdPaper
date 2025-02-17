@@ -1,5 +1,6 @@
 # Writing Style Guidelines for LLM Prompt Engineering
 
+- the paper is the brief, need to be concise and clear.
 - An academic and concise writing style must be employed.
 - Logical flow across ideas must be maintained throughout the paper.
 - Each paragraph must focus on a single topic and begin with a sentence that succinctly summarizes its content.
