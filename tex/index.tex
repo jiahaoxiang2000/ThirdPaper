@@ -88,13 +88,23 @@ These observations suggest the need for a more balanced approach that optimizes 
 
 \subsection{Contributions}
 
-\section{Preliminaries}
+In this brief, an optimized GPU-based implementation of SPHINCS\textsuperscript{+} is presented, achieving high throughput without compromising security. The main contributions are summarized as follows:
 
-\section{GPU-based Implementation of \texorpdfstring{SPHINCS\textsuperscript{+}}{SPHINCS+}}
+\begin{enumerate}
+  \item A novel parallelization strategy is introduced that balances the degree of parallelism with the computational efficiency of individual threads, thereby enhancing GPU resource utilization.
+  \item The parallel architectures of SPHINCS\textsuperscript{+} are optimized by integrating algorithmic and data-level parallelization techniques, which improve the performance of the underlying hash functions.
+  \item The implementation is evaluated on an NVIDIA GPU, demonstrating a throughput of XXX SPHINCS\textsuperscript{+} signatures per second, significantly exceeding the performance of state-of-the-art approaches. The complete source code and implementation details are available at \url{https://github.com/jiahaoxiang2000/sphincs-plus}.
+\end{enumerate}
 
-\section{Performance Evaluation}
+The remainder of the brief is organized as follows. Section~\ref{sec:preliminaries} provides an overview of the SPHINCS\textsuperscript{+} signature scheme; Section~\ref{sec:implementation} details the GPU-based implementation; Section~\ref{sec:evaluation} presents the performance evaluation; and Section~\ref{sec:conclusion} concludes the brief.
 
-\section{Conclusion}
+\section{Preliminaries}\label{sec:preliminaries}
+
+\section{GPU-based Implementation of \texorpdfstring{SPHINCS\textsuperscript{+}}{SPHINCS+}}\label{sec:implementation}
+
+\section{Performance Evaluation}\label{sec:evaluation}
+
+\section{Conclusion}\label{sec:conclusion}
 
 \color{black}
 
