@@ -31,7 +31,7 @@
 
 \begin{document}
 
-\title{Efficient Implementations of SPHINCS\textsuperscript{+} on GPUs}
+\title{Optimized Parallel Architectures of Post-Quantum Signature SPHINCS\textsuperscript{+} on GPUs}
 
 \author{Jiahao Xiang and Lang Li.
 
@@ -74,17 +74,19 @@ SPHINCS\textsuperscript{+} is a representative stateless hash-based signature sc
 
 \subsection{Related Work}
 
-% TODO the related need to update, have errors citation.
+Recent years have witnessed significant progress in GPU-based implementations of SPHINCS\textsuperscript{+}. Lee and Hwang~\cite{Lee2022} pioneered the exploration of GPU acceleration for post-quantum cryptographic schemes, establishing foundational techniques for parallel implementation of hash-based signatures. Building upon this foundation, Kim et al.~\cite{Kim2024} introduced parallel methods for key components of SPHINCS\textsuperscript{+}, including FORS, WOTS\textsuperscript{+}, and MSS tree computations. Their implementation on an RTX 3090 GPU demonstrated significant throughput improvements, though it faced efficiency limitations due to multiple CUDA kernel launches.
 
-Several prior studies have explored the efficient implementations of post-quantum signature schemes on various platforms. The work in~\cite{Joseph2022} has provided initial investigations into GPU-based implementations. Additionally, CUSPX~\cite{Wang2025} has been introduced, demonstrating the first large-scale parallel implementation of SPHINCS\textsuperscript{+}. CUSPX employs a three-level parallelism framework—integrating algorithmic, data, and hybrid strategies and introduces novel parallel Merkle tree construction algorithms combined with multiple load-balancing approaches. These contributions have significantly advanced the state-of-the-art in the efficient implementation of SPHINCS\textsuperscript{+}.
+Most recently, Wang et al.~\cite{Wang2025} presented CUSPX, introducing a comprehensive three-level parallelism framework that integrates algorithmic, data, and hybrid parallelization strategies. Their implementation incorporated novel parallel Merkle tree construction algorithms and multiple load-balancing approaches, achieving substantial performance improvements over previous implementations. Additionally, Ning et al.~\cite{Ning2024} proposed GRASP, which further optimized GPU-based SPHINCS\textsuperscript{+} implementation through adaptive parallelization strategies and kernel fusion technology.
 
 \subsection{Motivation}
 
+While previous implementations have made significant strides in GPU acceleration of SPHINCS\textsuperscript{+}, several critical aspects remain unexplored. Existing approaches primarily focus on maximizing throughput through extensive parallelization, often overlooking the efficiency of individual thread execution. The implementation by Kim et al.~\cite{Kim2024} demonstrated the potential of parallel processing but was limited by multiple kernel launches. Although CUSPX~\cite{Wang2025} introduced a comprehensive parallelization framework, its approach to thread utilization could be further optimized.
+
+Two key observations motivate our work. First, current implementations typically concentrate on parallelizing the SPHINCS\textsuperscript{+} algorithm structure while paying less attention to the parallel optimization of underlying hash functions. A more holistic approach that considers both algorithmic levels could yield better performance. Second, existing implementations often prioritize maximum parallelism without fully considering the trade-off between thread count and execution efficiency. This can lead to suboptimal performance due to increased synchronization overhead and reduced work efficiency per thread.
+
+These observations suggest the need for a more balanced approach that optimizes both the degree of parallelism and the computational efficiency of individual threads. Our work aims to address these limitations by developing an implementation that not only leverages GPU parallelism effectively but also ensures efficient utilization of computational resources at the thread level.
+
 \subsection{Contributions}
-
-%% one point is create the full parallelism of the SPHINCS+ algorithm, not only on the SPHINCS+, also on it used hash functions, to achieve the best performance on the GPU.
-
-%% consider the effect of the parallelism on the GPU, let the one thread do the most work. not just only consider the maximum throughput and minimum latency.
 
 \section{Preliminaries}
 
