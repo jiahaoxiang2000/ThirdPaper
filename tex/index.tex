@@ -31,7 +31,7 @@
 
 \begin{document}
 
-\title{\textcolor{blue}{Optimized Parallel Architectures of Post-Quantum Signature SPHINCS\textsuperscript{+} on GPUs}}
+\title{Optimized Parallel Architectures of Post-Quantum Signature SPHINCS\textsuperscript{+} on GPUs}
 
 \author{Jiahao Xiang and Lang Li.
 
@@ -70,8 +70,6 @@ The security offered by widely deployed public-key cryptosystems, such as RSA an
 
 SPHINCS\textsuperscript{+} is a representative stateless hash-based signature scheme and a finalist in the ongoing NIST standardization effort \cite{Turan}. Long-term security against advanced quantum attacks is targeted by employing robust cryptographic hash functions \cite{Bernstein2019}. The high computational cost of SPHINCS\textsuperscript{+} has motivated further investigations into efficient implementations across CPUs, FPGAs, and GPUs \cite{Joseph2022} to facilitate smooth adoption by organizations transitioning to post-quantum cryptography.
 
-\color{blue}
-
 \subsection{Related Work}
 
 Recent years have witnessed significant progress in GPU-based implementations of SPHINCS\textsuperscript{+}. Lee and Hwang~\cite{Lee2022} pioneered the exploration of GPU acceleration for post-quantum cryptographic schemes, establishing foundational techniques for parallel implementation of hash-based signatures. Building upon this foundation, Kim et al.~\cite{Kim2024} introduced parallel methods for key components of SPHINCS\textsuperscript{+}, including FORS, WOTS\textsuperscript{+}, and MSS tree computations. Their implementation on an RTX 3090 GPU demonstrated significant throughput improvements, though it faced efficiency limitations due to multiple CUDA kernel launches.
@@ -104,8 +102,6 @@ The remainder of the brief is organized as follows. Section~\ref{sec:preliminari
 \section{Performance Evaluation}\label{sec:evaluation}
 
 \section{Conclusion}\label{sec:conclusion}
-
-\color{black}
 
 % \section*{Acknowledgments}
 
