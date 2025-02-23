@@ -2,6 +2,10 @@
 # Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,macos,tex
 # Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,macos,tex
 
+.env
+
+tools/markitdown/
+
 ### macOS ###
 # General
 .DS_Store
@@ -9,7 +13,8 @@
 .LSOverride
 
 # Icon must end with two \r
-Icon
+Icon
+
 
 # Thumbnails
 ._*
