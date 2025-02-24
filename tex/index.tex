@@ -28,6 +28,8 @@
 \newtheorem{definition}{Definition}
 \newtheorem{proposition}{Proposition}
 \usepackage{listings}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning,calc,shadows}
 
 \begin{document}
 
@@ -95,9 +97,80 @@ In this brief, an optimized GPU-based implementation of SPHINCS\textsuperscript{
 \end{enumerate}
 The remainder of the brief is organized as follows. Section~\ref{sec:preliminaries} provides an overview of the SPHINCS\textsuperscript{+} signature scheme; Section~\ref{sec:implementation} details the GPU-based implementation; Section~\ref{sec:evaluation} presents the performance evaluation; and Section~\ref{sec:conclusion} concludes the brief.
 
+\color{blue}
+
+%% filepath: /Users/xiangjiahao/tex/ThirdPaper/tex/index.tex
+% ...existing code...
+
 \section{Preliminaries}\label{sec:preliminaries}
 
-\section{GPU-based Implementation of \texorpdfstring{SPHINCS\textsuperscript{+}}{SPHINCS+}}\label{sec:implementation}
+Essential background information on SPHINCS\textsuperscript{+} and GPU computing is provided in this section, forming the basis for the optimized implementation. First, the core components and security features of SPHINCS\textsuperscript{+} are discussed, including its hash-based signature structure and hierarchical certification tree. Then, the CUDA programming model and its parallel execution paradigm are explained, highlighting the relevance to GPU-based optimization.
+
+\subsection{\texorpdfstring{SPHINCS\textsuperscript{+}}{SPHINCS+} Overview}
+
+SPHINCS\textsuperscript{+} is a stateless hash-based signature scheme that delivers post-quantum security through a hierarchical certification structure. The signature generation process relies on three main components:
+
+\begin{itemize}
+  \item \textbf{WOTS+ (Winternitz One-Time Signature)}: A one-time scheme that handles authentication paths and underpins the Merkle tree construction
+  \item \textbf{FORS (Forest Of Random Subsets)}: A few-time signature scheme that uses $k$ components, each containing $t$ elements selected from pseudorandom subsets
+  \item \textbf{Hypertree}: A multi-layer structure of height $h$ divided into $d$ layers, each containing Merkle trees of height $h/d$ for authenticating WOTS+ public keys
+\end{itemize}
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+      block/.style={
+        rectangle,
+        draw,
+        fill=white,
+        text width=1.6cm,
+        align=center,
+        minimum height=0.6cm,
+        rounded corners=2pt,
+        fill=gray!5,
+        drop shadow={shadow xshift=0.5pt, shadow yshift=-0.5pt}
+      },
+      arrow/.style={->,>=stealth,thick,draw=gray!60},
+      level/.style={sibling distance=35mm,level distance=0.7cm}
+    ]
+    % Message and Components
+    \node[block] (fors) at (0,0) {FORS\\Signature};
+    \node[block,left=0.6cm of fors] (hash) {Message\\Hash};
+
+    % Hypertree Layers
+    \node[block,above=0.6cm of fors] (ht1) {Hypertree\\Layer 1};
+    \node[block,above=0.4cm of ht1] (ht2) {Hypertree\\Layer 2};
+    \node[block,above=0.4cm of ht2] (htd) {Layer $d$};
+
+    \draw[arrow] (hash) to (fors);
+    \draw[arrow] (fors) to (ht1);
+    \draw[arrow] (ht1) to (ht2);
+    \draw[arrow] ($(htd)+(0,-0.5)$) -- (htd);
+    \draw[dashed,thick,gray!60] ($(ht2)+(0,0.5)$) -- ($(htd)+(0,-0.3)$);
+
+    \node[left=0.6cm of ht1,text width=1.4cm,font=\footnotesize,align=right] {WOTS+ Signs Root};
+    \node[left=0.6cm of ht2,text width=1.4cm,font=\footnotesize,align=right] {WOTS+ Signs Root};
+    \node[left=0.6cm of htd,text width=1.4cm,font=\footnotesize,align=right] {Final Root};
+  \end{tikzpicture}
+  \caption{SPHINCS\textsuperscript{+} signature generation flow. A message hash is signed by FORS to produce $k$ authentication paths, which are then authenticated by a $d$-layer hypertree. Each layer employs WOTS+ to sign the root of the previous layer, culminating in a final root signature.}
+  \label{fig:sphincs-process}
+\end{figure}
+
+The SPHINCS\textsuperscript{+} signature generation process, shown in Figure~\ref{fig:sphincs-process}, employs a hierarchical authentication structure. A message digest is first created via hashing, followed by signing with the FORS few-time scheme, producing $k$ authentication paths of $t$ elements each. The resulting FORS public key is authenticated through a hypertree of $d$ layers, where each layer uses WOTS+ to sign the root of the layer below. This chain of signatures leads to the final root node, offering efficient verification with robust hash-based security.
+
+Two operational modes, “simple” and “robust,” are provided to balance speed and security. Parameter sets facilitate trade-offs among signature size, security level, and computational efficiency. All security properties derive from the hash functions, rendering SPHINCS\textsuperscript{+} resistant to quantum attacks.
+
+\subsection{GPU Computing Model}
+
+Modern Graphics Processing Units (GPUs) incorporate a large number of cores organized within multiple Streaming Multiprocessors (SMs). This highly parallel structure supports Single Instruction, Multiple Thread (SIMT) execution, wherein threads are grouped into warps, and warps collectively form blocks. Each block is then scheduled across available SMs, ensuring that thousands of concurrent threads can execute similar instructions in parallel.
+
+GPU architectures integrate various on-chip memories, including shared memory, registers, and caches, to enable efficient data exchange among threads within a block. These hardware components mitigate the bandwidth limitations associated with frequent global memory accesses. Consequently, GPU performance gains are visible when computational tasks exhibit substantial parallelism, as is the case in large-scale cryptographic algorithms such as SPHINCS\textsuperscript{+}.
+
+In the CUDA framework, memory optimization strategies such as coalesced accesses, shared memory buffering, and constant memory utilization further enhance throughput. Extensive parallelization of SPHINCS\textsuperscript{+} computations is therefore facilitated, allowing performance improvements through a combination of thread-level, data-level, and algorithmic parallelism.
+
+\color{black}
+
+\section{Optimized Implementation of \texorpdfstring{SPHINCS\textsuperscript{+}}{SPHINCS+}}\label{sec:implementation}
 
 \section{Performance Evaluation}\label{sec:evaluation}
 
