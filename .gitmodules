@@ -1,0 +1,3 @@
+[submodule "sphincs-plus"]
+	path = sphincs-plus
+	url = git@github.com:jiahaoxiang2000/sphincs-plus.git
