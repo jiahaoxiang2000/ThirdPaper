@@ -173,9 +173,126 @@ GPU architectures integrate various on-chip memories, including shared memory, r
 
 In the CUDA framework, memory optimization strategies such as coalesced accesses, shared memory buffering, and constant memory utilization further enhance throughput. Extensive parallelization of SPHINCS\textsuperscript{+} computations is therefore facilitated, allowing performance improvements through a combination of thread-level, data-level, and algorithmic parallelism.
 
-\color{black}
+\color{blue}
 
 \section{Optimized Implementation of \texorpdfstring{SPHINCS\textsuperscript{+}}{SPHINCS+}}\label{sec:implementation}
+
+The proposed implementation targets the signature generation process of SPHINCS\textsuperscript{+}, which is inherently more computationally intensive than verification. The architecture employs a multi-level parallelization approach that addresses both algorithmic and computational efficiency concerns.
+% As illustrated in Figure~\ref{fig:implementation-architecture}, the implementation pipeline consists of three main components: hash function acceleration, thread allocation optimization, and kernel function coordination.
+
+% \begin{figure}[t]
+%   \centering
+%   % [Optional: Insert figure showing implementation architecture]
+%   \caption{Architecture of the optimized SPHINCS\textsuperscript{+} implementation on GPU, highlighting the hash-function-level parallelization and adaptive thread allocation components.}
+%   \label{fig:implementation-architecture}
+% \end{figure}
+
+The implementation supports multiple parameter sets of SPHINCS\textsuperscript{+}, focusing particularly on the SHA256 hash function variant due to its robustness against quantum attacks. All components are implemented using CUDA C++, with several optimizations tailored to modern NVIDIA GPU architectures.
+
+\subsection{Hash-Function-Level Parallelization}
+
+Traditional GPU implementations of cryptographic algorithms typically focus on parallelizing high-level operations while treating underlying hash functions as atomic operations. The proposed implementation challenges this approach by introducing fine-grained parallelization at the hash function level, significantly reducing cryptographic operation latency.
+
+\subsubsection{Internal State Parallelism}
+
+The core innovation lies in decomposing hash function operations into parallel tasks that can be distributed across multiple threads within a single warp. For the SHA256 hash function, the internal state transformations are parallelized as follows:
+
+\begin{itemize}
+  \item \textbf{State Initialization}: Multiple threads simultaneously initialize different portions of the hash function's state array, reducing initialization overhead. Specifically, thread 0 handles initial state setup, while threads 0-15 cooperatively load message words in parallel.
+  \item \textbf{Round Functions}: Each round of the SHA256 permutation is decomposed into lane operations that can be executed concurrently by different threads. Threads 0-15 handle message schedule expansion, while threads 0-7 manage state variable updates during the round computation.
+  \item \textbf{Data Sharing}: Efficient data sharing is achieved through warp-level primitives like \texttt{\_\_shfl\_sync()}, eliminating the need for expensive shared memory operations. Synchronized operations ensure that threads within a warp can exchange data without warp divergence, enhancing computational efficiency.
+\end{itemize}
+
+This approach reduces the latency of individual hash computations by approximately $6\times$ compared to sequential implementations for typical message sizes used in SPHINCS\textsuperscript{+}, directly addressing the bottleneck in signature generation operations. Performance testing shows that for larger message sizes, the warp-level parallelized implementation consistently achieves throughput of over 120 MB/s, compared to approximately 20 MB/s for non-parallelized implementations.
+
+\subsubsection{Task Distribution Strategy}
+
+To efficiently distribute hash function tasks, a hierarchical task allocation scheme is implemented:
+
+\begin{algorithm}
+  \caption{Hash-Function-Level Task Distribution}
+  \begin{algorithmic}[1]
+    \REQUIRE Hash function $H$, Input data $M$, Number of threads $T$
+    \ENSURE Hash output
+
+    \STATE Partition internal state of $H$ into $T$ segments
+    \STATE Assign each segment to a thread
+    \FORALL{rounds $r$ in hash function}
+    \STATE Each thread processes its assigned state segment
+    \STATE Synchronize threads
+    \STATE Perform cross-thread state mixing
+    \STATE Synchronize threads
+    \ENDFOR
+    \STATE Combine results from all threads
+    \RETURN Final hash output
+  \end{algorithmic}
+\end{algorithm}
+
+The task distribution strategy is optimized specifically for SHA256 operations within the context of SPHINCS\textsuperscript{+}, where thousands of hash function calls must be executed efficiently. For WOTS+ chain computations, which constitute approximately 70\% of the computational work in signature generation, this approach enables a thread configuration of 128 blocks with 256 threads per block, achieving optimal performance by balancing parallelism with computational efficiency.
+
+% Experimental results demonstrate that this implementation significantly improves performance for the exact message sizes used in SPHINCS\textsuperscript{+} operations. For the critical 32-byte messages commonly used in hash tree construction, the warp-level parallelized approach achieves a throughput of 33.8 GB/s, compared to just 1.31 GB/s for standard implementations, representing a $25\times$ improvement.
+
+\subsection{Adaptive Thread Allocation Strategy}
+
+% The second key innovation addresses the challenge of balancing thread count and computational efficiency. Rather than naively maximizing thread utilization, an adaptive thread allocation strategy is developed that optimizes thread distribution based on GPU architecture characteristics and algorithmic requirements.
+
+% \subsubsection{Workload Characterization}
+
+% The implementation first performs a detailed workload characterization of each SPHINCS\textsuperscript{+} component (FORS, WOTS+, and hypertree construction). This characterization considers:
+
+% 1. \textbf{Computation Intensity}: The ratio of arithmetic operations to memory access operations
+% 2. \textbf{Memory Access Patterns}: Whether accesses are regular, coalesced, or random
+% 3. \textbf{Inter-Thread Dependencies}: The frequency and pattern of required synchronization points
+
+% Based on this characterization, different components receive tailored thread allocation strategies.
+
+% \subsubsection{Dynamic Thread Assignment}
+
+% The thread assignment model dynamically balances thread count against execution efficiency:
+
+% \begin{equation}
+%   T_{optimal} = \min\left(\max\left(T_{min}, \frac{C \cdot W}{S \cdot L}\right), T_{max}\right)
+% \end{equation}
+
+% where $T_{optimal}$ is the optimal thread count, $T_{min}$ and $T_{max}$ are architecture-specific bounds, $C$ is the computation intensity factor, $W$ is the total workload, $S$ is the synchronization overhead factor, and $L$ is the memory latency factor.
+
+% This equation is evaluated at runtime for different components of the SPHINCS\textsuperscript{+} algorithm, resulting in thread assignments that minimize the combined impact of synchronization overhead and memory access latency while maximizing computational throughput.
+
+% \subsubsection{Block Size Optimization}
+
+% The implementation further optimizes the CUDA block size for each kernel to maximize SM occupancy while ensuring efficient execution:
+
+% \begin{algorithm}
+%   \caption{Adaptive Block Size Determination}
+%   \begin{algorithmic}[1]
+%     \REQUIRE Component type $C$, GPU characteristics $G$
+%     \ENSURE Optimal block size $B_{opt}$
+
+%     \STATE Calculate theoretical occupancy for different block sizes
+%     \STATE Estimate memory requirements per thread
+%     \STATE Determine synchronization frequency
+%     \STATE Select $B_{opt}$ that maximizes $\frac{\text{occupancy}}{\text{sync\_overhead} + \text{memory\_latency}}$
+%     \RETURN $B_{opt}$
+%   \end{algorithmic}
+% \end{algorithm}
+
+% This approach results in optimal resource utilization across different GPU architectures and SPHINCS\textsuperscript{+} parameter sets.
+
+% \subsection{Integration and Optimization}
+
+% The two main innovations are integrated into a cohesive implementation through several additional optimizations:
+
+% 1. \textbf{Memory Hierarchy Utilization}: Careful placement of data in appropriate memory spaces (registers, shared memory, L1/L2 caches, and global memory) based on access patterns and frequency.
+
+% 2. \textbf{Kernel Fusion}: Where algorithmically feasible, multiple operations are fused into single kernels to reduce launch overhead and improve data locality.
+
+% 3. \textbf{Warp Specialization}: Within thread blocks, different warps are assigned specialized tasks based on their computational characteristics, improving overall efficiency.
+
+% 4. \textbf{Register Pressure Management}: Careful optimization of register usage to balance between fast access and high occupancy.
+
+% These optimizations collectively support the core innovations, resulting in an implementation that achieves both low latency and high throughput for SPHINCS\textsuperscript{+} signature generation on GPU platforms.
+
+\color{black}
 
 \section{Performance Evaluation}\label{sec:evaluation}
 
