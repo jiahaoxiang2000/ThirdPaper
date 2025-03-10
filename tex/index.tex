@@ -61,11 +61,13 @@
 \end{abstract}
 
 \begin{IEEEkeywords}
-  Software implementation, GPU, signature algorithm.
+  Software implementation, GPU, PQC, Signature algorithm.
 \end{IEEEkeywords}
 
 \section{Introduction}
 \label{sec:intro}
+
+% Issue: the background info not close to the SPHINCS+ implementation, can reduce the PQC background info, more focus on SPHINCS+ and relative implementation.
 
 \IEEEPARstart{T}{he} quantum computers leverage quantum-mechanical phenomena to process data, raising significant concerns about the resilience of classical cryptographic methods.
 The security offered by widely deployed public-key cryptosystems, such as RSA and ECC, is jeopardized by Shor's algorithm \cite{Shor1994}, motivating comprehensive research on alternative cryptographic solutions. In response, the National Institute of Standards and Technology (NIST) initiated the Post-Quantum Cryptography (PQC) standardization process to develop novel schemes that withstand quantum computing capabilities \cite{NIST2016}.
@@ -74,7 +76,7 @@ SPHINCS\textsuperscript{+} is a representative stateless hash-based signature sc
 
 \subsection{Related Work}
 
-Recent years have witnessed significant progress in GPU-based implementations of SPHINCS\textsuperscript{+}. Lee and Hwang~\cite{Lee2022} pioneered the exploration of GPU acceleration for post-quantum cryptographic schemes, establishing foundational techniques for parallel implementation of hash-based signatures. Building upon this foundation, Kim et al.~\cite{Kim2024} introduced parallel methods for key components of SPHINCS\textsuperscript{+}, including FORS, WOTS\textsuperscript{+}, and MSS tree computations. Their implementation on an RTX 3090 GPU demonstrated significant throughput improvements, though it faced efficiency limitations due to multiple CUDA kernel launches.
+Significant progress has been made in GPU-based implementations of SPHINCS\textsuperscript{+}. Lee and Hwang~\cite{Lee2022} pioneered the exploration of GPU acceleration for post-quantum cryptographic schemes, establishing foundational techniques for parallel implementation of hash-based signatures. Building upon this foundation, Kim et al.~\cite{Kim2024} introduced parallel methods for key components of SPHINCS\textsuperscript{+}, including FORS, WOTS\textsuperscript{+}, and MSS tree computations. Their implementation on an RTX 3090 GPU demonstrated significant throughput improvements, though it faced efficiency limitations due to multiple CUDA kernel launches.
 
 Most recently, Wang et al.~\cite{Wang2025} presented CUSPX, introducing a comprehensive three-level parallelism framework that integrates algorithmic, data, and hybrid parallelization strategies. Their implementation incorporated novel parallel Merkle tree construction algorithms and multiple load-balancing approaches, achieving substantial performance improvements over previous implementations. Additionally, Ning et al.~\cite{Ning2024} proposed GRASP, which further optimized GPU-based SPHINCS\textsuperscript{+} implementation through adaptive parallelization strategies and kernel fusion technology.
 
@@ -84,11 +86,11 @@ While previous implementations have made significant strides in GPU acceleration
 
 Two key observations motivate our work. First, current implementations typically concentrate on parallelizing the SPHINCS\textsuperscript{+} algorithm structure while paying insufficient attention to the optimization of underlying hash functions, which constitute the computational core of the scheme. A more holistic approach that addresses both algorithmic levels could yield substantial performance improvements. Second, existing implementations often prioritize maximum thread parallelism without adequately considering the trade-off between thread count and execution efficiency. This frequently leads to suboptimal performance due to increased synchronization overhead, memory access latency, and reduced computational efficiency per thread.
 
-These observations indicate the need for a more balanced approach that optimizes both the degree of parallelism and the computational efficiency of individual threads. Our work addresses these limitations by developing an implementation that not only leverages GPU parallelism effectively but also ensures efficient utilization of computational resources through careful thread allocation and optimization of the underlying hash functions. By focusing on both algorithmic structure and computational primitives, our implementation achieves superior performance while maintaining the security guarantees of SPHINCS\textsuperscript{+}.
+These observations indicate the need for a more balanced approach that optimizes both the degree of parallelism and the computational efficiency of individual threads. Our work addresses these limitations by developing an implementation that not only leverages GPU parallelism effectively but also ensures efficient utilization of computational resources through careful thread allocation and optimization of the underlying hash functions. By focusing on both algorithmic structure and computational primitives, our implementation achieves superior performance.
 
 \subsection{Contributions}
 
-In this brief, an optimized GPU-based implementation of SPHINCS\textsuperscript{+} is presented, achieving high throughput without compromising security. The main contributions are summarized as follows:
+In this brief, an optimized GPU-based implementation of SPHINCS\textsuperscript{+} is presented, achieving high throughput and low latency. The main contributions are summarized as follows:
 
 \begin{enumerate}
   \item A hash-function-level parallelization approach is introduced that reduces latency through fine-grained task distribution, significantly accelerating the core computational primitives of SPHINCS\textsuperscript{+}.
@@ -100,10 +102,6 @@ In this brief, an optimized GPU-based implementation of SPHINCS\textsuperscript{
 The remainder of the brief is organized as follows. Section~\ref{sec:preliminaries} provides an overview of the SPHINCS\textsuperscript{+} signature scheme; Section~\ref{sec:implementation} details the GPU-based implementation; Section~\ref{sec:evaluation} presents the performance evaluation; and Section~\ref{sec:conclusion} concludes the brief.
 
 \section{Preliminaries}\label{sec:preliminaries}
-
-% NOTE: if the paper content is too long, then this summary of section can be removed.
-
-Essential background information on SPHINCS\textsuperscript{+} and GPU computing is provided in this section, forming the basis for the optimized implementation. First, the core components and security features of SPHINCS\textsuperscript{+} are discussed, including its hash-based signature structure and hierarchical certification tree. Then, the CUDA programming model and its parallel execution paradigm are explained, highlighting the relevance to GPU-based optimization.
 
 \subsection{\texorpdfstring{SPHINCS\textsuperscript{+}}{SPHINCS+} Overview}
 
@@ -163,23 +161,11 @@ Two operational modes, “simple” and “robust,” are provided to balance sp
 
 Modern Graphics Processing Units (GPUs) incorporate a large number of cores organized within multiple Streaming Multiprocessors (SMs). This highly parallel structure supports Single Instruction, Multiple Thread (SIMT) execution, wherein threads are grouped into warps, and warps collectively form blocks. Each block is then scheduled across available SMs, ensuring that thousands of concurrent threads can execute similar instructions in parallel.
 
-GPU architectures integrate various on-chip memories, including shared memory, registers, and caches, to enable efficient data exchange among threads within a block. These hardware components mitigate the bandwidth limitations associated with frequent global memory accesses. Consequently, GPU performance gains are visible when computational tasks exhibit substantial parallelism, as is the case in large-scale cryptographic algorithms such as SPHINCS\textsuperscript{+}.
-
 In the CUDA framework, memory optimization strategies such as coalesced accesses, shared memory buffering, and constant memory utilization further enhance throughput. Extensive parallelization of SPHINCS\textsuperscript{+} computations is therefore facilitated, allowing performance improvements through a combination of thread-level, data-level, and algorithmic parallelism.
 
 \section{Optimized Implementation of \texorpdfstring{SPHINCS\textsuperscript{+}}{SPHINCS+}}\label{sec:implementation}
 
-The proposed implementation targets the signature generation process of SPHINCS\textsuperscript{+}, which is inherently more computationally intensive than verification. The architecture employs a multi-level parallelization approach that addresses both algorithmic and computational efficiency concerns.
-% As illustrated in Figure~\ref{fig:implementation-architecture}, the implementation pipeline consists of three main components: hash function acceleration, thread allocation optimization, and kernel function coordination.
-
-% \begin{figure}[t]
-%   \centering
-%   % [Optional: Insert figure showing implementation architecture]
-%   \caption{Architecture of the optimized SPHINCS\textsuperscript{+} implementation on GPU, highlighting the hash-function-level parallelization and adaptive thread allocation components.}
-%   \label{fig:implementation-architecture}
-% \end{figure}
-
-The implementation supports multiple parameter sets of SPHINCS\textsuperscript{+}, focusing particularly on the SHA256 hash function variant due to its robustness against quantum attacks. All components are implemented using CUDA C++, with several optimizations tailored to modern NVIDIA GPU architectures.
+% TODO: here we think need use the one figure to show the all optimization architecture, and then use the subfigure to show the details of each part.
 
 \subsection{Hash-Function-Level Parallelization}
 
@@ -222,67 +208,7 @@ To efficiently distribute hash function tasks, a hierarchical task allocation sc
 
 The task distribution strategy is optimized specifically for SHA256 operations within the context of SPHINCS\textsuperscript{+}, where thousands of hash function calls must be executed efficiently. For WOTS+ chain computations, which constitute approximately 70\% of the computational work in signature generation, this approach enables a thread configuration of 128 blocks with 256 threads per block, achieving optimal performance by balancing parallelism with computational efficiency.
 
-% Experimental results demonstrate that this implementation significantly improves performance for the exact message sizes used in SPHINCS\textsuperscript{+} operations. For the critical 32-byte messages commonly used in hash tree construction, the warp-level parallelized approach achieves a throughput of 33.8 GB/s, compared to just 1.31 GB/s for standard implementations, representing a $25\times$ improvement.
-
 \subsection{Adaptive Thread Allocation Strategy}
-
-% The second key innovation addresses the challenge of balancing thread count and computational efficiency. Rather than naively maximizing thread utilization, an adaptive thread allocation strategy is developed that optimizes thread distribution based on GPU architecture characteristics and algorithmic requirements.
-
-% \subsubsection{Workload Characterization}
-
-% The implementation first performs a detailed workload characterization of each SPHINCS\textsuperscript{+} component (FORS, WOTS+, and hypertree construction). This characterization considers:
-
-% 1. \textbf{Computation Intensity}: The ratio of arithmetic operations to memory access operations
-% 2. \textbf{Memory Access Patterns}: Whether accesses are regular, coalesced, or random
-% 3. \textbf{Inter-Thread Dependencies}: The frequency and pattern of required synchronization points
-
-% Based on this characterization, different components receive tailored thread allocation strategies.
-
-% \subsubsection{Dynamic Thread Assignment}
-
-% The thread assignment model dynamically balances thread count against execution efficiency:
-
-% \begin{equation}
-%   T_{optimal} = \min\left(\max\left(T_{min}, \frac{C \cdot W}{S \cdot L}\right), T_{max}\right)
-% \end{equation}
-
-% where $T_{optimal}$ is the optimal thread count, $T_{min}$ and $T_{max}$ are architecture-specific bounds, $C$ is the computation intensity factor, $W$ is the total workload, $S$ is the synchronization overhead factor, and $L$ is the memory latency factor.
-
-% This equation is evaluated at runtime for different components of the SPHINCS\textsuperscript{+} algorithm, resulting in thread assignments that minimize the combined impact of synchronization overhead and memory access latency while maximizing computational throughput.
-
-% \subsubsection{Block Size Optimization}
-
-% The implementation further optimizes the CUDA block size for each kernel to maximize SM occupancy while ensuring efficient execution:
-
-% \begin{algorithm}
-%   \caption{Adaptive Block Size Determination}
-%   \begin{algorithmic}[1]
-%     \REQUIRE Component type $C$, GPU characteristics $G$
-%     \ENSURE Optimal block size $B_{opt}$
-
-%     \STATE Calculate theoretical occupancy for different block sizes
-%     \STATE Estimate memory requirements per thread
-%     \STATE Determine synchronization frequency
-%     \STATE Select $B_{opt}$ that maximizes $\frac{\text{occupancy}}{\text{sync\_overhead} + \text{memory\_latency}}$
-%     \RETURN $B_{opt}$
-%   \end{algorithmic}
-% \end{algorithm}
-
-% This approach results in optimal resource utilization across different GPU architectures and SPHINCS\textsuperscript{+} parameter sets.
-
-% \subsection{Integration and Optimization}
-
-% The two main innovations are integrated into a cohesive implementation through several additional optimizations:
-
-% 1. \textbf{Memory Hierarchy Utilization}: Careful placement of data in appropriate memory spaces (registers, shared memory, L1/L2 caches, and global memory) based on access patterns and frequency.
-
-% 2. \textbf{Kernel Fusion}: Where algorithmically feasible, multiple operations are fused into single kernels to reduce launch overhead and improve data locality.
-
-% 3. \textbf{Warp Specialization}: Within thread blocks, different warps are assigned specialized tasks based on their computational characteristics, improving overall efficiency.
-
-% 4. \textbf{Register Pressure Management}: Careful optimization of register usage to balance between fast access and high occupancy.
-
-% These optimizations collectively support the core innovations, resulting in an implementation that achieves both low latency and high throughput for SPHINCS\textsuperscript{+} signature generation on GPU platforms.
 
 \section{Performance Evaluation}\label{sec:evaluation}
 
