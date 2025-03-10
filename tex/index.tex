@@ -167,25 +167,29 @@ In the CUDA framework, memory optimization strategies such as coalesced accesses
 
 % TODO: here we think need use the one figure to show the all optimization architecture, and then use the subfigure to show the details of each part.
 
+\color{blue}
+
 \subsection{Hash-Function-Level Parallelization}
 
-Traditional GPU implementations of cryptographic algorithms typically focus on parallelizing high-level operations while treating underlying hash functions as atomic operations. The proposed implementation challenges this approach by introducing fine-grained parallelization at the hash function level, significantly reducing cryptographic operation latency.
+The implementation introduces fine-grained parallelization at the hash function level, departing from conventional approaches that treat hash functions as atomic operations. This technique reduces cryptographic operation latency by decomposing hash operations into parallel tasks distributed across multiple threads.
 
 \subsubsection{Internal State Parallelism}
 
-The core innovation lies in decomposing hash function operations into parallel tasks that can be distributed across multiple threads within a single warp. For the SHA256 hash function, the internal state transformations are parallelized as follows:
+% NOTE: here use the concise figure to show the internal state parallelism more great.
+
+The approach decomposes hash function operations into concurrent tasks that can be executed in parallel by multiple threads within a single warp. For SHA256, the internal state transformations are parallelized as follows:
 
 \begin{itemize}
-  \item \textbf{State Initialization}: Multiple threads simultaneously initialize different portions of the hash function's state array, reducing initialization overhead. Specifically, thread 0 handles initial state setup, while threads 0-15 cooperatively load message words in parallel.
-  \item \textbf{Round Functions}: Each round of the SHA256 permutation is decomposed into lane operations that can be executed concurrently by different threads. Threads 0-15 handle message schedule expansion, while threads 0-7 manage state variable updates during the round computation.
-  \item \textbf{Data Sharing}: Efficient data sharing is achieved through warp-level primitives like \texttt{\_\_shfl\_sync()}, eliminating the need for expensive shared memory operations. Synchronized operations ensure that threads within a warp can exchange data without warp divergence, enhancing computational efficiency.
+  \item \textbf{State Initialization}: Multiple threads concurrently initialize different portions of the hash function's state array. Thread 0 handles initial state setup, while threads 0-15 cooperatively load message words in parallel, reducing initialization overhead.
+
+  \item \textbf{Round Functions}: Each round of the SHA256 permutation is decomposed into lane operations executed concurrently by different threads. Threads 0-15 process message schedule expansion, while threads 0-7 manage state variable updates during round computation.
+
+  \item \textbf{Data Sharing}: Warp-level primitives  \texttt{\_\_shfl\_sync()} enable efficient data sharing without requiring expensive shared memory operations. These synchronized operations allow threads within a warp to exchange data with minimal divergence, enhancing computational efficiency.
 \end{itemize}
 
-This approach reduces the latency of individual hash computations by approximately $6\times$ compared to sequential implementations for typical message sizes used in SPHINCS\textsuperscript{+}, directly addressing the bottleneck in signature generation operations. Performance testing shows that for larger message sizes, the warp-level parallelized implementation consistently achieves throughput of over 120 MB/s, compared to approximately 20 MB/s for non-parallelized implementations.
+\subsubsection{Task Distribution }
 
-\subsubsection{Task Distribution Strategy}
-
-To efficiently distribute hash function tasks, a hierarchical task allocation scheme is implemented:
+A hierarchical task allocation scheme is implemented to efficiently distribute hash function operations across GPU threads:
 
 \begin{algorithm}
   \caption{Hash-Function-Level Task Distribution}
@@ -197,16 +201,26 @@ To efficiently distribute hash function tasks, a hierarchical task allocation sc
     \STATE Assign each segment to a thread
     \FORALL{rounds $r$ in hash function}
     \STATE Each thread processes its assigned state segment
-    \STATE Synchronize threads
-    \STATE Perform cross-thread state mixing
+    \STATE Synchronize threads using warp-level primitives
+    \STATE Perform cross-thread state mixing through register shuffling
     \STATE Synchronize threads
     \ENDFOR
-    \STATE Combine results from all threads
+    \STATE Combine results from all threads using reduction operations
     \RETURN Final hash output
   \end{algorithmic}
 \end{algorithm}
 
-The task distribution strategy is optimized specifically for SHA256 operations within the context of SPHINCS\textsuperscript{+}, where thousands of hash function calls must be executed efficiently. For WOTS+ chain computations, which constitute approximately 70\% of the computational work in signature generation, this approach enables a thread configuration of 128 blocks with 256 threads per block, achieving optimal performance by balancing parallelism with computational efficiency.
+The task distribution strategy is optimized for SHA256 operations within SPHINCS\textsuperscript{+}, where hash function calls account for over 90\% of computational workload. The implementation employs a tiered approach where:
+
+\begin{itemize}
+  \item At the intra-warp level, 16 threads collaborate on a single hash computation with specific state variable assignments
+  \item At the block level, multiple warps process independent hash operations concurrently
+  \item At the grid level, optimal workload distribution is maintained with 128 blocks of 256 threads per block
+\end{itemize}
+
+For WOTS+ chain computations, which constitute approximately 70\% of the signature generation workload, this task distribution achieves a 5.3x speedup compared to conventional single-thread-per-hash implementations.
+
+\color{black}
 
 \subsection{Adaptive Thread Allocation Strategy}
 
