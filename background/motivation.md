@@ -12,6 +12,8 @@ Here we want to optimize the SPHINCS+ scheme, which is not digital signature alg
 | CUSPX: Efficient GPU Implementations of Post-Quantum Signature SPHINCS+ | The authors introduce CUSPX, a large-scale parallel implementation of SPHINCS+ on GPUs.                                      | Optimizes SPHINCS+ for scalability and efficiency, achieving significant improvements on large-scale GPU architectures. | [IEEE Computer Society](https://www.computer.org/csdl/journal/tc/5555/01/10677363/209otdi2Xi8?utm_source=chatgpt.com) |
 | Accelerating Hash-based PQC Performance on GPU Parallel                 | Discusses GPU-accelerated implementations of SPHINCS+, with an emphasis on improving throughput of signing and verification. | Utilizes CUDA optimizations to enhance performance, with a focus on both signing and verification processes.            | [ePrint](https://eprint.iacr.org/2024/1030.pdf?utm_source=chatgpt.com)                                                |
 
+- [Intel-Co-Develops-One-of-Three-New-Post-Quantum-Crypto-Standards](https://community.intel.com/t5/Blogs/Tech-Innovation/Cloud/Intel-Co-Develops-One-of-Three-New-Post-Quantum-Crypto-Standards/post/1638099) Post.
+
 ## Other implementations
 
 - [nvidia cupqc](https://developer.nvidia.com/cupqc) published on the 2024-10-03. Not open code source, only supported by the x86 library.
