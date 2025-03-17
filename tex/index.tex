@@ -81,9 +81,9 @@ More recent advancements include CUSPX by Wang et al.~\cite{Wang2025}, which int
 
 \subsection{Motivation}
 
-Analysis of existing GPU implementations of SPHINCS\textsuperscript{+} reveals two critical efficiency constraints. First, conventional implementations apply uniform maximum thread allocation across all cryptographic operations, disregarding the distinct computational characteristics of individual functions. This static approach creates resource imbalance—some operations experience excessive synchronization overhead while others underutilize available resources.
+Analysis of existing GPU implementations of SLH-DSA reveals two critical efficiency constraints. First, conventional implementations apply uniform maximum thread allocation across all cryptographic operations, disregarding the distinct computational characteristics of individual functions. This static approach creates resource imbalance—some operations experience excessive synchronization overhead while others underutilize available resources.
 
-Second, the hierarchical structure of SPHINCS\textsuperscript{+}, with its multiple hash operations across FORS, WOTS\textsuperscript{+}, and Merkle tree components, enables decomposition into smaller computational units. However, existing implementations prioritize thread count over computational efficiency, resulting in suboptimal per-thread performance despite extensive hardware utilization.
+Second, the hierarchical structure of SLH-DSA, with its multiple hash operations across FORS, WOTS\textsuperscript{+}, and Merkle tree components, enables decomposition into smaller computational units. However, existing implementations prioritize thread count over computational efficiency, resulting in suboptimal per-thread performance despite extensive hardware utilization.
 
 These observations necessitate an adaptive parallelization approach that dynamically determines optimal thread configurations for each cryptographic function while enabling fine-grained decomposition of signature components. The implementation presented addresses these limitations through a thread-adaptive strategy that balances parallelism levels with computational efficiency, alongside function-level optimizations that enhance per-thread execution performance.
 
@@ -103,13 +103,13 @@ This paper presents a GPU-based implementation of SLH-DSA with a thread-adaptive
 
 \color{black}
 
-The remainder of the brief is organized as follows. Section~\ref{sec:preliminaries} provides an overview of the SPHINCS\textsuperscript{+} signature scheme; Section~\ref{sec:implementation} details the GPU-based implementation; Section~\ref{sec:evaluation} presents the performance evaluation; and Section~\ref{sec:conclusion} concludes the brief.
+The remainder of the brief is organized as follows. Section~\ref{sec:preliminaries} provides an overview of the SLH-DSA signature scheme; Section~\ref{sec:implementation} details the GPU-based implementation; Section~\ref{sec:evaluation} presents the performance evaluation; and Section~\ref{sec:conclusion} concludes the brief.
 
 \section{Preliminaries}\label{sec:preliminaries}
 
-\subsection{\texorpdfstring{SPHINCS\textsuperscript{+}}{SPHINCS+} Overview}
+\subsection{SLH-DSA Overview}
 
-SPHINCS\textsuperscript{+} is a stateless hash-based signature scheme that delivers post-quantum security through a hierarchical certification structure. The signature generation process relies on three main components:
+SLH-DSA is a stateless hash-based signature scheme that delivers post-quantum security through a hierarchical certification structure. The signature generation process relies on three main components:
 
 \begin{itemize}
   \item \textbf{WOTS+ (Winternitz One-Time Signature)}: A one-time scheme that handles authentication paths and underpins the Merkle tree construction
@@ -153,25 +153,27 @@ SPHINCS\textsuperscript{+} is a stateless hash-based signature scheme that deliv
     \node[left=0.6cm of ht2,text width=1.4cm,font=\footnotesize,align=right] {WOTS+ Signs Root};
     \node[left=0.6cm of htd,text width=1.4cm,font=\footnotesize,align=right] {Final Root};
   \end{tikzpicture}
-  \caption{SPHINCS\textsuperscript{+} signature generation flow. A message hash is signed by FORS to produce $k$ authentication paths, which are then authenticated by a $d$-layer hypertree. Each layer employs WOTS+ to sign the root of the previous layer, culminating in a final root signature.}
+  \caption{SLH-DSA signature generation flow. A message hash is signed by FORS to produce $k$ authentication paths, which are then authenticated by a $d$-layer hypertree. Each layer employs WOTS+ to sign the root of the previous layer, culminating in a final root signature.}
   \label{fig:sphincs-process}
 \end{figure}
 
-The SPHINCS\textsuperscript{+} signature generation process, shown in Figure~\ref{fig:sphincs-process}, employs a hierarchical authentication structure. A message digest is first created via hashing, followed by signing with the FORS few-time scheme, producing $k$ authentication paths of $t$ elements each. The resulting FORS public key is authenticated through a hypertree of $d$ layers, where each layer uses WOTS+ to sign the root of the layer below. This chain of signatures leads to the final root node, offering efficient verification with robust hash-based security.
+The SLH-DSA signature generation process, shown in Figure~\ref{fig:sphincs-process}, employs a hierarchical authentication structure. A message digest is first created via hashing, followed by signing with the FORS few-time scheme, producing $k$ authentication paths of $t$ elements each. The resulting FORS public key is authenticated through a hypertree of $d$ layers, where each layer uses WOTS+ to sign the root of the layer below. This chain of signatures leads to the final root node, offering efficient verification with robust hash-based security.
 
-Two operational modes, “simple” and “robust,” are provided to balance speed and security. Parameter sets facilitate trade-offs among signature size, security level, and computational efficiency. All security properties derive from the hash functions, rendering SPHINCS\textsuperscript{+} resistant to quantum attacks.
+Two operational modes, “simple” and “robust,” are provided to balance speed and security. Parameter sets facilitate trade-offs among signature size, security level, and computational efficiency. All security properties derive from the hash functions, rendering SLH-DSA resistant to quantum attacks.
 
 \subsection{GPU Computing Model}
 
 Modern Graphics Processing Units (GPUs) incorporate a large number of cores organized within multiple Streaming Multiprocessors (SMs). This highly parallel structure supports Single Instruction, Multiple Thread (SIMT) execution, wherein threads are grouped into warps, and warps collectively form blocks. Each block is then scheduled across available SMs, ensuring that thousands of concurrent threads can execute similar instructions in parallel.
 
-In the CUDA framework, memory optimization strategies such as coalesced accesses, shared memory buffering, and constant memory utilization further enhance throughput. Extensive parallelization of SPHINCS\textsuperscript{+} computations is therefore facilitated, allowing performance improvements through a combination of thread-level, data-level, and algorithmic parallelism.
+In the CUDA framework, memory optimization strategies such as coalesced accesses, shared memory buffering, and constant memory utilization further enhance throughput. Extensive parallelization of SLH-DSA computations is therefore facilitated, allowing performance improvements through a combination of thread-level, data-level, and algorithmic parallelism.
 
-\section{Optimized Implementation of \texorpdfstring{SPHINCS\textsuperscript{+}}{SPHINCS+}}\label{sec:implementation}
+\section{Optimized Implementation of SLH-DSA}\label{sec:implementation}
 
 % TODO: here we think need use the one figure to show the all optimization architecture, and then use the subfigure to show the details of each part.
 
-\subsection{Hash-Function-Level Parallelization}
+\subsection{Adaptive Thread Allocation}
+
+\subsection{Function-Level Parallelization}
 
 The implementation introduces fine-grained parallelization at the hash function level, departing from conventional approaches that treat hash functions as atomic operations. This technique reduces cryptographic operation latency by decomposing hash operations into parallel tasks distributed across multiple threads.
 
@@ -221,8 +223,6 @@ The task distribution strategy is optimized for SHA256 operations within SPHINCS
 \end{itemize}
 
 For WOTS+ chain computations, which constitute approximately 70\% of the signature generation workload, this task distribution achieves a 5.3x speedup compared to conventional single-thread-per-hash implementations.
-
-\subsection{Adaptive Thread Allocation Strategy}
 
 \section{Performance Evaluation}\label{sec:evaluation}
 
