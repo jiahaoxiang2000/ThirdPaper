@@ -62,6 +62,8 @@
   FIPS 205, GPU, SPHINCS\textsuperscript{+}, Signature algorithm.
 \end{IEEEkeywords}
 
+\color{blue}
+
 \section{Introduction}
 \label{sec:intro}
 
@@ -87,14 +89,19 @@ These observations necessitate an adaptive parallelization approach that dynamic
 
 \subsection{Contributions}
 
-In this brief, an optimized GPU-based implementation of SPHINCS\textsuperscript{+} is presented, achieving high throughput and low latency. The main contributions are summarized as follows:
+% TODO: the SPHINCS+ name conflict with the SLH-DSA, need to use the SLH-DSA in the title and abstract more great.
+
+This paper presents a GPU-based implementation of SLH-DSA with a thread-adaptive parallelization strategy. The principal contributions are as follows:
 
 \begin{enumerate}
-  \item A hash-function-level parallelization approach is introduced that reduces latency through fine-grained task distribution, significantly accelerating the core computational primitives of SPHINCS\textsuperscript{+}.
+  \item An adaptive thread allocation methodology that dynamically determines optimal thread configurations for different cryptographic functions, balancing parallelism levels with execution efficiency to minimize synchronization overhead while maximizing computational throughput.
 
-  \item An adaptive thread allocation strategy is developed that optimizes the balance between thread count and kernel function efficiency, minimizing synchronization overhead while maximizing computational throughput on GPU architectures.
-  \item The implementation is evaluated on an NVIDIA GPU, demonstrating a throughput of XXX SPHINCS\textsuperscript{+} signatures per second, significantly exceeding the performance of state-of-the-art approaches. The complete source code and implementation details are available at \url{https://github.com/jiahaoxiang2000/sphincs-plus}.
+  \item A fine-grained function-level parallelization technique that decomposes cryptographic operations into concurrent tasks, thereby reducing computational latency and accelerating the core primitives of SLH-DSA.
+
+  \item Comprehensive performance evaluation on an NVIDIA GPU demonstrating a throughput of XXX SLH-DSA signatures per second, representing a significant advancement over existing implementations. The implementation is available as an open-source repository at \url{https://github.com/jiahaoxiang2000/sphincs-plus}.
 \end{enumerate}
+
+\color{black}
 
 The remainder of the brief is organized as follows. Section~\ref{sec:preliminaries} provides an overview of the SPHINCS\textsuperscript{+} signature scheme; Section~\ref{sec:implementation} details the GPU-based implementation; Section~\ref{sec:evaluation} presents the performance evaluation; and Section~\ref{sec:conclusion} concludes the brief.
 
