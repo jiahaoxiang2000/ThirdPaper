@@ -167,8 +167,6 @@ In the CUDA framework, memory optimization strategies such as coalesced accesses
 
 % TODO: here we think need use the one figure to show the all optimization architecture, and then use the subfigure to show the details of each part.
 
-\color{blue}
-
 \subsection{Hash-Function-Level Parallelization}
 
 The implementation introduces fine-grained parallelization at the hash function level, departing from conventional approaches that treat hash functions as atomic operations. This technique reduces cryptographic operation latency by decomposing hash operations into parallel tasks distributed across multiple threads.
@@ -219,8 +217,6 @@ The task distribution strategy is optimized for SHA256 operations within SPHINCS
 \end{itemize}
 
 For WOTS+ chain computations, which constitute approximately 70\% of the signature generation workload, this task distribution achieves a 5.3x speedup compared to conventional single-thread-per-hash implementations.
-
-\color{black}
 
 \subsection{Adaptive Thread Allocation Strategy}
 
