@@ -33,7 +33,7 @@
 
 \begin{document}
 
-\title{\textcolor{blue}{Thread-Adaptive: Optimized Parallel Architectures of SLH-DSA on GPUs}}
+\title{Thread-Adaptive: Optimized Parallel Architectures of SLH-DSA on GPUs}
 
 \author{Jiahao Xiang and Lang Li.
 
@@ -55,14 +55,12 @@
 \maketitle
 
 \begin{abstract}
-  \textcolor{blue}{The Post-Quantum Cryptography (PQC) standardization process has led to the development of the stateless hash-based digital signature algorithm (SLH-DSA) FIPS 205. The high computational cost of SLH-DSA necessitates efficient implementations for practical deployment. This work presents a GPU-based implementation of SLH-DSA that achieves high throughput through a thread-adaptive parallelization strategy. Unlike conventional approaches that allocate maximum thread counts, the implementation dynamically determines optimal parallelism levels for each cryptographic kernel function, balancing thread utilization with execution efficiency. Additionally, fine-grained decomposition of signature components enables more efficient thread-level execution. Performance evaluation on an NVIDIA RTX 4090 GPU demonstrates the implementation achieves a throughput of XXX signatures per second, significantly outperforming existing approaches. The results establish GPUs as effective platforms for accelerating SLH-DSA operations in high-throughput environments, facilitating practical transition to post-quantum standards.}
+  The Post-Quantum Cryptography (PQC) standardization process has led to the development of the stateless hash-based digital signature algorithm (SLH-DSA) FIPS 205. The high computational cost of SLH-DSA necessitates efficient implementations for practical deployment. This work presents a GPU-based implementation of SLH-DSA that achieves high throughput through a thread-adaptive parallelization strategy. Unlike conventional approaches that allocate maximum thread counts, the implementation dynamically determines optimal parallelism levels for each cryptographic kernel function, balancing thread utilization with execution efficiency. Additionally, fine-grained decomposition of signature components enables more efficient thread-level execution. Performance evaluation on an NVIDIA RTX 4090 GPU demonstrates the implementation achieves a throughput of XXX signatures per second, significantly outperforming existing approaches. The results establish GPUs as effective platforms for accelerating SLH-DSA operations in high-throughput environments, facilitating practical transition to post-quantum standards.
 \end{abstract}
 
 \begin{IEEEkeywords}
   FIPS 205, GPU, SPHINCS\textsuperscript{+}, Signature algorithm.
 \end{IEEEkeywords}
-
-\color{blue}
 
 \section{Introduction}
 \label{sec:intro}
@@ -100,8 +98,6 @@ This paper presents a GPU-based implementation of SLH-DSA with a thread-adaptive
 
   \item Comprehensive performance evaluation on an NVIDIA GPU demonstrating a throughput of XXX SLH-DSA signatures per second, representing a significant advancement over existing implementations. The implementation is available as an open-source repository at \url{https://github.com/jiahaoxiang2000/sphincs-plus}.
 \end{enumerate}
-
-\color{black}
 
 The remainder of the brief is organized as follows. Section~\ref{sec:preliminaries} provides an overview of the SLH-DSA signature scheme; Section~\ref{sec:implementation} details the GPU-based implementation; Section~\ref{sec:evaluation} presents the performance evaluation; and Section~\ref{sec:conclusion} concludes the brief.
 
@@ -171,8 +167,6 @@ In the CUDA framework, memory optimization strategies such as coalesced accesses
 
 % TODO: here we think need use the one figure to show the all optimization architecture, and then use the subfigure to show the details of each part.
 
-\color{blue}
-
 \subsection{Adaptive Thread Allocation}
 
 Conventional GPU implementations of cryptographic algorithms typically employ maximum thread allocation across all operations, assuming that higher parallelism universally improves performance. However, this approach disregards the distinct computational characteristics of different cryptographic functions within SLH-DSA. The thread-adaptive methodology presented in this work addresses this limitation through a systematic approach to thread optimization.
@@ -230,8 +224,6 @@ The implementation incorporates these optimizations through:
 \end{algorithm}
 
 This thread-adaptive approach enables the implementation to balance parallelism with synchronization overhead, resulting in optimal resource utilization across diverse operations in the SLH-DSA algorithm. The thread configuration is stored in constant memory for rapid access during execution, ensuring minimal overhead during cryptographic operations.
-
-\color{black}
 
 \subsection{Function-Level Parallelization}
 
