@@ -168,13 +168,13 @@ In the CUDA framework, memory optimization strategies such as coalesced accesses
 % TODO: here we think need use the one figure to show the all optimization architecture, and then use the subfigure to show the details of each part.
 % use the tikzpicture to create the figure
 
-\textcolor{blue}{
-The optimization framework employs a dual-component architecture as illustrated in Figure \ref{fig:optimization_architecture}. This framework integrates Adaptive Thread Allocation (ATA) with Function-Level Parallelism (FLP) to maximize computational efficiency while maintaining cryptographic integrity.}
+
+The optimization framework employs a dual-component architecture as illustrated in Figure \ref{fig:optimization_architecture}. This framework integrates Adaptive Thread Allocation (ATA) with Function-Level Parallelism (FLP) to maximize computational efficiency while maintaining cryptographic integrity.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.48\textwidth]{./fig/optimize-overview.pdf}
-\caption{\textcolor{blue}{SLH-DSA optimization architecture showing the hierarchical parallelization model. The kernel function $g$ undergoes thread-level parallelization where individual function instances $g_{(\cdot,\cdot)_i}$ are distributed across $t$ dynamically allocated threads based on workload characteristics and available system resources.}}
+\caption{SLH-DSA optimization architecture showing the hierarchical parallelization model. The kernel function $g$ undergoes thread-level parallelization where individual function instances $g_{(\cdot,\cdot)_i}$ are distributed across $t$ dynamically allocated threads based on workload characteristics and available system resources.}
 \label{fig:optimization_architecture}
 \end{figure}
 
