@@ -169,7 +169,7 @@ In the CUDA framework, memory optimization strategies such as coalesced accesses
 % use the tikzpicture to create the figure
 
 \textcolor{blue}{
-The SLH-DSA optimization framework employs a dual-component architecture as illustrated in Figure \ref{fig:optimization_architecture}. This framework integrates Adaptive Thread Allocation (ATA) with Function-Level Parallelism (FLP) to maximize computational efficiency while maintaining cryptographic integrity.}
+The optimization framework employs a dual-component architecture as illustrated in Figure \ref{fig:optimization_architecture}. This framework integrates Adaptive Thread Allocation (ATA) with Function-Level Parallelism (FLP) to maximize computational efficiency while maintaining cryptographic integrity.}
 
 \begin{figure}[htbp]
 \centering
@@ -208,6 +208,8 @@ The parameters $\alpha_i$, $\beta_i$, and $\gamma_i$ were determined through rig
 \subsubsection{Dynamic Implementation}
 
 The thread allocation optimization is implemented according to Algorithm~\ref{alg:adaptive_thread_allocation}.
+
+% here maybe can writing more thing.
 
 \begin{algorithm}
   \caption{Adaptive Thread Allocation (ATA)}
@@ -282,6 +284,8 @@ The task distribution strategy is optimized for SHA256 operations within SPHINCS
 For WOTS+ chain computations, which constitute approximately 70\% of the signature generation workload, this task distribution achieves a 5.3x speedup compared to conventional single-thread-per-hash implementations.
 
 \section{Performance Evaluation}\label{sec:evaluation}
+
+% on the performance evaluation, first we should to show the best case. then divide the part work add to experiment see the results, which can prove the efficiency of our approach.
 
 \section{Conclusion}\label{sec:conclusion}
 
