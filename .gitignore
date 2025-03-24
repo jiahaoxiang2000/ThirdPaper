@@ -3,6 +3,7 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,macos,tex
 
 .env
+*.bkp
 
 tools/markitdown/
 
@@ -371,4 +372,3 @@ TSWLatexianTemp*
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,macos,tex
 
 # Custom rules (everything added below won't be overriden by 'Generate .gitignore File' if you use 'Update' option)
-

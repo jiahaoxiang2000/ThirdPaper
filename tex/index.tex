@@ -166,64 +166,69 @@ In the CUDA framework, memory optimization strategies such as coalesced accesses
 \section{Optimized Implementation of SLH-DSA}\label{sec:implementation}
 
 % TODO: here we think need use the one figure to show the all optimization architecture, and then use the subfigure to show the details of each part.
+% use the tikzpicture to create the figure
+
+\textcolor{blue}{
+The SLH-DSA optimization framework employs a dual-component architecture as illustrated in Figure \ref{fig:optimization_architecture}. This framework integrates Adaptive Thread Allocation (ATA) with Function-Level Parallelism (FLP) to maximize computational efficiency while maintaining cryptographic integrity.}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.48\textwidth]{./fig/optimize-overview.pdf}
+\caption{\textcolor{blue}{SLH-DSA optimization architecture showing the hierarchical parallelization model. The kernel function $g$ undergoes thread-level parallelization where individual function instances $g_{(\cdot,\cdot)_i}$ are distributed across $t$ dynamically allocated threads based on workload characteristics and available system resources.}}
+\label{fig:optimization_architecture}
+\end{figure}
+
 
 \subsection{Adaptive Thread Allocation}
 
-Conventional GPU implementations of cryptographic algorithms typically employ maximum thread allocation across all operations, assuming that higher parallelism universally improves performance. However, this approach disregards the distinct computational characteristics of different cryptographic functions within SLH-DSA. The thread-adaptive methodology presented in this work addresses this limitation through a systematic approach to thread optimization.
+Traditional GPU implementations of cryptographic algorithms often apply maximum thread allocation universally, overlooking the unique computational profiles of individual operations within SLH-DSA. This research presents a thread-adaptive methodology that precisely calibrates parallelization based on function-specific characteristics to achieve optimal performance.
 
 \subsubsection{Performance Modeling}
 
-For each cryptographic function $g_i$ in SLH-DSA, execution time is modeled as:
+The execution time for each cryptographic function $g_i$ in SLH-DSA is characterized by Eq.~(\ref{eq:execution_time_model}):
 
 \begin{equation}
+ \label{eq:execution_time_model}
   T(g_i, t) = \alpha_i + \frac{\beta_i}{t} + \gamma_i \cdot t
 \end{equation}
 
-Where $\alpha_i$ represents fixed overhead cost, $\frac{\beta_i}{t}$ captures the parallel speedup component, $\gamma_i \cdot t$ models thread management overhead, and $t$ is the thread count. This model encapsulates the competing factors in thread allocation: increased parallelism reduces computational time but introduces synchronization and management overhead.
+This model captures three essential components: $\alpha_i$ represents invariant computational overhead, $\frac{\beta_i}{t}$ reflects the parallelizable workload component that scales inversely with thread count, and $\gamma_i \cdot t$ quantifies thread management overhead that increases linearly with thread allocation. This formulation encapsulates the fundamental parallelization tradeoff between computational acceleration and synchronization costs.
 
 \subsubsection{Optimal Thread Determination}
 
-The optimal thread count $t_i^*$ for each function $g_i$ is derived by finding the minimum of $T(g_i, t)$:
+By minimizing $T(g_i, t)$ with respect to $t$, the optimal thread allocation $t_i^*$ for each function is derived as:
 
 \begin{equation}
+\label{eq:optimal_thread_count}
   t_i^* = \sqrt{\frac{\beta_i}{\gamma_i}}
 \end{equation}
 
-To determine the parameters $\alpha_i$, $\beta_i$, and $\gamma_i$, we conducted extensive profiling of each cryptographic operation across varying thread configurations.
-
-% This approach revealed that:
-
-% \begin{itemize}
-%   \item Tree traversal operations achieve optimal performance at 256 threads per block with 128 blocks, despite having access to significantly more hardware threads
-%   \item Hash operations within WOTS+ chains perform optimally with 64 threads per warp across 32 warps per block
-%   \item FORS signature generation benefits from higher thread counts (512 threads per block) due to its embarrassingly parallel structure
-% \end{itemize}
-
-% Experimental verification confirmed that these optimized thread allocations improve performance by up to 23\% compared to naive maximum-thread approaches, with keypair generation time reducing from 0.0022 to 0.0017 seconds per operation at scale.
+The parameters $\alpha_i$, $\beta_i$, and $\gamma_i$ were determined through rigorous profiling of each cryptographic operation across multiple thread configurations, establishing an empirical basis for optimization decisions.
 
 \subsubsection{Dynamic Implementation}
 
-The implementation incorporates these optimizations through:
+The thread allocation optimization is implemented according to Algorithm~\ref{alg:adaptive_thread_allocation}.
 
 \begin{algorithm}
-  \caption{Adaptive Thread Allocation}
+  \caption{Adaptive Thread Allocation (ATA)}
+  \label{alg:adaptive_thread_allocation}
   \begin{algorithmic}[1]
-    \REQUIRE Set of cryptographic functions $G = \{g_1, g_2, \ldots, g_n\}$
+    \REQUIRE Set of cryptographic functions $G = \{g_1, g_2, \ldots, g_m\}$
     \ENSURE Optimized thread configuration for each function
 
     \FOR{each function $g_i \in G$}
     \STATE Profile $g_i$ with varying thread counts $t \in \{2^j | j \in [5, 10]\}$
     \STATE Fit performance data to model $T(g_i, t) = \alpha_i + \frac{\beta_i}{t} + \gamma_i \cdot t$
     \STATE Calculate $t_i^* = \sqrt{\frac{\beta_i}{\gamma_i}}$
-    \STATE Round $t_i^*$ to nearest power of 2 for optimal GPU scheduling
+    \STATE Round $t_i^*$ to nearest power of 2 for GPU scheduler compatibility
     \ENDFOR
 
-    \STATE Construct thread configuration lookup table
+    \STATE Store thread configuration in constant memory lookup table
     \RETURN Thread configuration table
   \end{algorithmic}
 \end{algorithm}
 
-This thread-adaptive approach enables the implementation to balance parallelism with synchronization overhead, resulting in optimal resource utilization across diverse operations in the SLH-DSA algorithm. The thread configuration is stored in constant memory for rapid access during execution, ensuring minimal overhead during cryptographic operations.
+This architecture dynamically balances parallelism against synchronization overhead, yielding precise resource allocation tailored to each cryptographic operation. The thread configuration is maintained in GPU constant memory for negligible-latency access during execution, ensuring computational efficiency without introducing additional runtime overhead.
 
 \subsection{Function-Level Parallelization}
 
