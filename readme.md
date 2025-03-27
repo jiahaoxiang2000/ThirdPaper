@@ -4,15 +4,11 @@ The third paper is after the [Efficient Implementations of CRAFT Cipher For Inte
 
 ## background survey
 
-consider the combination particular difficulties, if all the design hardware and software by beginning, those will speed too much time.
-So we can use the existing heterogeneous hardware to accelerate the software implementation of the cipher. Maybe greater way.
+Considering the particular difficulties of combining hardware and software implementations, designing both from scratch would consume too much time.
+Instead, we can leverage existing heterogeneous hardware to accelerate the software implementation of the cipher, which may offer a more efficient approach.
 
-We want to use the GPU unit to accelerate the software implementation of the cipher. The GPU unit is a heterogeneous hardware, and it is very suitable for parallel computing. The GPU unit can accelerate the software implementation of the cipher.
+We aim to use GPU units to accelerate the software implementation of the cipher.
+GPU units are heterogeneous hardware components particularly well-suited for parallel computing.
+Additionally, Quantum cryptography is gaining significant popularity in 2025 and shows an upward trend. Therefore, we utilized GPU units to accelerate the software implementation of the Quantum cryptography hash signature, known as SLH-DSA.
 
-more detail can see the [background folder](./background/)
-
-## Advise for other students
-
-- [ ] implement multi-version of the cipher
-- [ ] change the SPHINCS+ hash function
-- [ ] add application environment
+For more details, please refer to the [background folder](./background/)
