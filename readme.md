@@ -12,3 +12,7 @@ GPU units are heterogeneous hardware components particularly well-suited for par
 Additionally, Quantum cryptography is gaining significant popularity in 2025 and shows an upward trend. Therefore, we utilized GPU units to accelerate the software implementation of the Quantum cryptography hash signature, known as SLH-DSA.
 
 For more details, please refer to the [background folder](./background/)
+
+## experiment platform
+
+we all GPU code is on the [sphincs-plus](https://github.com/jiahaoxiang2000/sphincs-plus), (maybe we call the SLH-DSA more great).
