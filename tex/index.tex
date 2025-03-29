@@ -55,6 +55,7 @@
 \maketitle
 
 \begin{abstract}
+\textcolor{blue}{
 The imminent threat posed by quantum computing necessitates an urgent transition to Post-Quantum Cryptography (PQC) to safeguard sensitive data against future cryptanalytic attacks.
 The stateless hash-based digital signature algorithm (SLH-DSA) FIPS 205, while quantum-resistant, presents significant computational challenges for practical deployment.
 This research presents a GPU-accelerated implementation of SLH-DSA that employs a thread-adaptive parallelization methodology to maximize throughput.
@@ -62,50 +63,52 @@ In contrast to conventional approaches utilizing fixed maximum thread allocation
 Furthermore, granular decomposition of signature components is implemented to enhance thread-level execution performance.
 Performance evaluation conducted on an NVIDIA RTX 4090 GPU demonstrates that the implementation attains a throughput of XXX signatures per second, representing a significant performance improvement over existing methodologies.
 The empirical results establish GPUs as viable platforms for SLH-DSA acceleration in high-throughput environments, thus facilitating the practical transition to post-quantum cryptographic standards.
+}
 \end{abstract}
 
 \begin{IEEEkeywords}
   FIPS 205, GPU, SPHINCS\textsuperscript{+}, Signature algorithm.
 \end{IEEEkeywords}
 
+\color{blue}
+
 \section{Introduction}
 \label{sec:intro}
 
-% Issue: the background info not close to the SPHINCS+ implementation, can reduce the PQC background info, more focus on SPHINCS+ and relative implementation.
+\IEEEPARstart{Q}{uantum} computers pose a significant threat to current cryptographic systems through their ability to efficiently solve mathematical problems that underpin modern security protocols. This threat materializes in the anticipated ``Q-Day", when quantum computers attain sufficient computational power to compromise public encryption systems safeguarding digital communications, authentication mechanisms, and key exchange protocols. Widely deployed public-key cryptosystems such as RSA and ECC are particularly vulnerable to Shor's algorithm \cite{Shor1994}, which can efficiently factor large integers and compute discrete logarithms—problems considered computationally infeasible using classical computing approaches. In response to these vulnerabilities, the National Institute of Standards and Technology (NIST) initiated the Post-Quantum Cryptography (PQC) standardization process to develop cryptographic schemes resistant to quantum computing capabilities \cite{NIST2016}. The imminent threat of encrypted data being harvested now for future decryption once quantum computing matures makes the transition to post-quantum cryptography increasingly urgent for protecting sensitive information and maintaining long-term data security.
 
-\IEEEPARstart{T}{he} emergence of quantum computing presents a double-edged technological advancement. While offering unprecedented computational capabilities for complex problems in drug discovery, medical research, and materials science, quantum computers simultaneously pose a significant threat to current cryptographic systems. This threat culminates in ``Q-Day," when quantum computers become capable of compromising public encryption systems that safeguard digital interactions, including authentication mechanisms and key exchange protocols. The vulnerability of widely deployed public-key cryptosystems such as RSA and ECC to Shor's algorithm \cite{Shor1994} has necessitated research into quantum-resistant alternatives. In response, the National Institute of Standards and Technology (NIST) initiated the Post-Quantum Cryptography (PQC) standardization process to develop cryptographic schemes that withstand quantum computing capabilities \cite{NIST2016}.
-
-SPHINCS\textsuperscript{+} is a representative stateless hash-based signature scheme and a finalist in the NIST standardization effort \cite{Turan}. It provides long-term security against quantum attacks by employing robust cryptographic hash functions \cite{Bernstein2019}. The scheme has since formed the basis for the Stateless Hash-based Digital Signature Algorithm (SLH-DSA), which was standardized as FIPS 205 \cite{FIPS205}. The high computational cost of these hash-based signatures has motivated research into efficient implementations across CPUs, FPGAs, and GPUs \cite{Joseph2022} to facilitate adoption by organizations transitioning to post-quantum cryptography.
+SPHINCS\textsuperscript{+}, a prominent stateless hash-based signature scheme and NIST standardization finalist \cite{Turan}, provides robust quantum-attack resistance through secure cryptographic hash functions \cite{Bernstein2019}. This scheme subsequently formed the foundation for the Stateless Hash-based Digital Signature Algorithm (SLH-DSA), now standardized as FIPS 205 \cite{FIPS205}. The computational intensity of these hash-based signatures has necessitated research into efficient implementations across various hardware platforms, including CPUs, FPGAs, and GPUs \cite{Joseph2022}, to facilitate organizational transitions to post-quantum cryptographic solutions.
 
 \subsection{Related Work}
 
-GPU-based implementations of SPHINCS\textsuperscript{+} have progressed significantly in recent years. Lee and Hwang~\cite{Lee2022} established foundational techniques for parallel implementation of hash-based signatures, demonstrating initial feasibility of GPU acceleration for post-quantum cryptographic schemes. Kim et al.~\cite{Kim2024} advanced this work by introducing parallel methods for key SPHINCS\textsuperscript{+} components—FORS, WOTS\textsuperscript{+}, and Merkle tree computations. Their RTX 3090 implementation achieved substantial throughput improvements despite efficiency limitations from frequent kernel launches.
+GPU acceleration for SPHINCS\textsuperscript{+} has evolved substantially in recent years. Lee and Hwang~\cite{Lee2022} established the fundamental parallel implementation techniques for hash-based signatures, demonstrating the viability of GPU acceleration for post-quantum cryptography. Building on this foundation, Kim et al.~\cite{Kim2024} developed parallel methods for critical SPHINCS\textsuperscript{+} components—specifically FORS, WOTS\textsuperscript{+}, and Merkle tree computations. Their implementation on the NVIDIA RTX 3090 achieved significant throughput improvements, despite efficiency constraints from multiple kernel invocations.
 
-More recent advancements include CUSPX by Wang et al.~\cite{Wang2025}, which introduced a comprehensive three-level parallelism framework integrating algorithmic, data, and hybrid parallelization strategies. Their implementation featured parallel Merkle tree construction algorithms and load-balancing approaches that demonstrated substantial performance gains.
+Subsequently, Wang et al.~\cite{Wang2025} introduced CUSPX, a sophisticated three-level parallelism framework integrating algorithmic, data, and hybrid parallelization approaches. Their implementation featured optimized parallel Merkle tree construction algorithms and strategic load-balancing techniques, resulting in substantial performance enhancements.
 
 \subsection{Motivation}
 
-Analysis of existing GPU implementations of SLH-DSA reveals two critical efficiency constraints. First, conventional implementations apply uniform maximum thread allocation across all cryptographic operations, disregarding the distinct computational characteristics of individual functions. This static approach creates resource imbalance—some operations experience excessive synchronization overhead while others underutilize available resources.
+Existing GPU implementations of SLH-DSA reveals two fundamental efficiency constraints.
+First, conventional approaches apply uniform thread allocation across all cryptographic operations, neglecting the distinct computational characteristics of individual functions. This static resource allocation creates significant imbalances certain operations suffer from excessive synchronization overhead while others underutilize available computational resources.
 
-Second, the hierarchical structure of SLH-DSA, with its multiple hash operations across FORS, WOTS\textsuperscript{+}, and Merkle tree components, enables decomposition into smaller computational units. However, existing implementations prioritize thread count over computational efficiency, resulting in suboptimal per-thread performance despite extensive hardware utilization.
-
-These observations necessitate an adaptive parallelization approach that dynamically determines optimal thread configurations for each cryptographic function while enabling fine-grained decomposition of signature components. The implementation presented addresses these limitations through a thread-adaptive strategy that balances parallelism levels with computational efficiency, alongside function-level optimizations that enhance per-thread execution performance.
+Second, the hierarchical structure of SLH-DSA, comprising multiple hash operations distributed across FORS, WOTS\textsuperscript{+}, and Merkle tree components, permits decomposition into smaller computational units. However, current implementations emphasize maximizing thread count rather than optimizing computational efficiency, resulting in suboptimal per-thread performance despite high hardware utilization rates.
+These limitations necessitate an adaptive parallelization approach that dynamically determines optimal thread configurations for specific cryptographic functions while enabling fine-grained decomposition of signature components.
 
 \subsection{Contributions}
 
-% TODO: the SPHINCS+ name conflict with the SLH-DSA, need to use the SLH-DSA in the title and abstract more great.
-
-This paper presents a GPU-based implementation of SLH-DSA with a thread-adaptive parallelization strategy. The principal contributions are as follows:
+This paper presents a thread-adaptive GPU-based implementation of SLH-DSA with the following key contributions:
 
 \begin{enumerate}
-  \item An adaptive thread allocation methodology that dynamically determines optimal thread configurations for different cryptographic functions, balancing parallelism levels with execution efficiency to minimize synchronization overhead while maximizing computational throughput.
+  \item A dynamic thread allocation methodology that optimizes thread configurations for individual cryptographic functions based on their computational characteristics, effectively balancing parallelism with execution efficiency to minimize synchronization overhead while maximizing throughput.
 
-  \item A fine-grained function-level parallelization technique that decomposes cryptographic operations into concurrent tasks, thereby reducing computational latency and accelerating the core primitives of SLH-DSA.
+  \item A sophisticated function-level parallelization approach that strategically decomposes cryptographic operations into independent computational tasks, significantly reducing latency and enhancing the performance of core SLH-DSA primitives.
 
-  \item Comprehensive performance evaluation on an NVIDIA GPU demonstrating a throughput of XXX SLH-DSA signatures per second, representing a significant advancement over existing implementations. The implementation is available as an open-source repository at \url{https://github.com/jiahaoxiang2000/sphincs-plus}.
+  \item Performance evaluation on NVIDIA GPU architecture demonstrating a throughput of XXX SLH-DSA signatures per second, representing substantial improvement over state-of-the-art implementations.
+  The complete implementation is available as an open-source repository at \url{https://github.com/jiahaoxiang2000/sphincs-plus}.
 \end{enumerate}
 
-The remainder of the brief is organized as follows. Section~\ref{sec:preliminaries} provides an overview of the SLH-DSA signature scheme; Section~\ref{sec:implementation} details the GPU-based implementation; Section~\ref{sec:evaluation} presents the performance evaluation; and Section~\ref{sec:conclusion} concludes the brief.
+The paper is structured as follows: Section~\ref{sec:preliminaries} presents the fundamental concepts of the SLH-DSA signature scheme; Section~\ref{sec:implementation} describes the architectural design and implementation details; Section~\ref{sec:evaluation} analyzes performance results and comparative metrics; and Section~\ref{sec:conclusion} summarizes findings and discusses future research directions.
+
+\color{black}
 
 \section{Preliminaries}\label{sec:preliminaries}
 
