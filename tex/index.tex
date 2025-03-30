@@ -108,18 +108,17 @@ This paper presents a thread-adaptive GPU-based implementation of SLH-DSA with t
 
 The paper is structured as follows: Section~\ref{sec:preliminaries} presents the fundamental concepts of the SLH-DSA signature scheme; Section~\ref{sec:implementation} describes the architectural design and implementation details; Section~\ref{sec:evaluation} analyzes performance results and comparative metrics; and Section~\ref{sec:conclusion} summarizes findings and discusses future research directions.
 
-\color{black}
 
 \section{Preliminaries}\label{sec:preliminaries}
 
 \subsection{SLH-DSA Overview}
 
-SLH-DSA is a stateless hash-based signature scheme that delivers post-quantum security through a hierarchical certification structure. The signature generation process relies on three main components:
+SLH-DSA represents a stateless hash-based signature scheme that provides post-quantum security through hierarchical certification architecture. The signature generation mechanism comprises three fundamental components:
 
 \begin{itemize}
-  \item \textbf{WOTS+ (Winternitz One-Time Signature)}: A one-time scheme that handles authentication paths and underpins the Merkle tree construction
-  \item \textbf{FORS (Forest Of Random Subsets)}: A few-time signature scheme that uses $k$ components, each containing $t$ elements selected from pseudorandom subsets
-  \item \textbf{Hypertree}: A multi-layer structure of height $h$ divided into $d$ layers, each containing Merkle trees of height $h/d$ for authenticating WOTS+ public keys
+  \item \textbf{WOTS+ (Winternitz One-Time Signature)}: A one-time scheme facilitating authentication paths and supporting Merkle tree construction
+  \item \textbf{FORS (Forest Of Random Subsets)}: A few-time signature scheme utilizing $k$ components, each containing $t$ elements selected from pseudorandom subsets
+  \item \textbf{Hypertree}: A multi-layer structure with height $h$ divided into $d$ layers, each containing Merkle trees of height $h/d$ for WOTS+ public key authentication
 \end{itemize}
 
 \begin{figure}[t]
@@ -158,49 +157,44 @@ SLH-DSA is a stateless hash-based signature scheme that delivers post-quantum se
     \node[left=0.6cm of ht2,text width=1.4cm,font=\footnotesize,align=right] {WOTS+ Signs Root};
     \node[left=0.6cm of htd,text width=1.4cm,font=\footnotesize,align=right] {Final Root};
   \end{tikzpicture}
-  \caption{SLH-DSA signature generation flow. A message hash is signed by FORS to produce $k$ authentication paths, which are then authenticated by a $d$-layer hypertree. Each layer employs WOTS+ to sign the root of the previous layer, culminating in a final root signature.}
+  \caption{SLH-DSA signature generation flow. A message hash undergoes FORS signing to produce $k$ authentication paths, subsequently authenticated by a $d$-layer hypertree. Each layer employs WOTS+ to sign the previous layer's root, culminating in a final root signature.}
   \label{fig:sphincs-process}
 \end{figure}
 
-The SLH-DSA signature generation process, shown in Figure~\ref{fig:sphincs-process}, employs a hierarchical authentication structure. A message digest is first created via hashing, followed by signing with the FORS few-time scheme, producing $k$ authentication paths of $t$ elements each. The resulting FORS public key is authenticated through a hypertree of $d$ layers, where each layer uses WOTS+ to sign the root of the layer below. This chain of signatures leads to the final root node, offering efficient verification with robust hash-based security.
+The SLH-DSA signature generation process, illustrated in Figure~\ref{fig:sphincs-process}, implements a hierarchical authentication structure. Initially, a message digest is generated through hashing, followed by FORS few-time scheme signing, which produces $k$ authentication paths comprising $t$ elements each. The resulting FORS public key undergoes authentication via a $d$-layer hypertree, where each layer applies WOTS+ to sign the lower layer's root. This signature chain terminates at the final root node, enabling efficient verification while maintaining robust hash-based security.
 
-Two operational modes, “simple” and “robust,” are provided to balance speed and security. Parameter sets facilitate trade-offs among signature size, security level, and computational efficiency. All security properties derive from the hash functions, rendering SLH-DSA resistant to quantum attacks.
+SLH-DSA offers ``simple" and ``robust" operational modes to optimize speed-security trade-offs. Various parameter sets accommodate different requirements regarding signature size, security level, and computational efficiency. The scheme derives all security properties from underlying hash functions, rendering it resistant to quantum computational attacks.
 
 \subsection{GPU Computing Model}
 
-Modern Graphics Processing Units (GPUs) incorporate a large number of cores organized within multiple Streaming Multiprocessors (SMs). This highly parallel structure supports Single Instruction, Multiple Thread (SIMT) execution, wherein threads are grouped into warps, and warps collectively form blocks. Each block is then scheduled across available SMs, ensuring that thousands of concurrent threads can execute similar instructions in parallel.
+Graphics Processing Units (GPUs) incorporate numerous cores organized within Streaming Multiprocessors (SMs). This parallel architecture implements Single Instruction, Multiple Thread (SIMT) execution, organizing threads into warps that collectively form blocks. These blocks are distributed across available SMs, enabling thousands of concurrent threads to execute similar instructions simultaneously.
 
-In the CUDA framework, memory optimization strategies such as coalesced accesses, shared memory buffering, and constant memory utilization further enhance throughput. Extensive parallelization of SLH-DSA computations is therefore facilitated, allowing performance improvements through a combination of thread-level, data-level, and algorithmic parallelism.
+The CUDA framework enhances computational throughput through memory optimization strategies including coalesced memory accesses, shared memory utilization, and constant memory buffering. These techniques facilitate extensive parallelization of SLH-DSA computations, yielding performance improvements through the combined application of thread-level, data-level, and algorithmic parallelism.
 
 \section{Optimized Implementation of SLH-DSA}\label{sec:implementation}
 
-% TODO: here we think need use the one figure to show the all optimization architecture, and then use the subfigure to show the details of each part.
-% use the tikzpicture to create the figure
-
-
-The optimization framework employs a dual-component architecture as illustrated in Figure \ref{fig:optimization_architecture}. This framework integrates Adaptive Thread Allocation (ATA) with Function-Level Parallelism (FLP) to maximize computational efficiency while maintaining cryptographic integrity.
+This section presents a novel optimization framework for SLH-DSA that employs a dual-component architecture, as illustrated in Figure \ref{fig:optimization_architecture}. The framework integrates Adaptive Thread Allocation (ATA) with Function-Level Parallelism (FLP) to maximize computational efficiency while preserving cryptographic integrity.
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.48\textwidth]{./fig/optimize-overview.drawio.pdf}
-  \caption{SLH-DSA optimization architecture showing the hierarchical parallelization model. The kernel function $g$ undergoes thread-level parallelization where individual function instances $g_{(\cdot,\cdot)_i}$ are distributed across $t$ dynamically allocated threads based on workload characteristics and available system resources.}
+  \caption{Hierarchical parallelization architecture for SLH-DSA optimization. The kernel function $g$ undergoes thread-level parallelization where individual function instances $g_{(\cdot,\cdot)_i}$ are distributed across $t$ dynamically allocated threads based on workload characteristics and available system resources.}
   \label{fig:optimization_architecture}
 \end{figure}
 
 \subsection{Adaptive Thread Allocation}
 
-Traditional GPU implementations of cryptographic algorithms often apply maximum thread allocation universally, overlooking the unique computational profiles of individual operations within SLH-DSA. This research presents a thread-adaptive methodology that precisely calibrates parallelization based on function-specific characteristics to achieve optimal performance.
+Conventional GPU implementations of cryptographic algorithms typically apply maximum thread allocation universally, neglecting the distinct computational profiles of individual operations within SLH-DSA. Our research introduces a thread-adaptive methodology that precisely calibrates parallelization based on function-specific characteristics to achieve optimal performance.
 
 \subsubsection{Performance Modeling}
 
-The execution time for each cryptographic function $g_i$ in SLH-DSA is characterized by Eq.~(\ref{eq:execution_time_model}):
+The execution time for each cryptographic function $g_i$ in SLH-DSA is characterized by:
 
 \begin{equation}
   \label{eq:execution_time_model}
-  T(g_i, t) = \alpha_i + \frac{\beta_i}{t} + \gamma_i \cdot t
+  T(g_i, t) = \alpha_i + \frac{\beta_i}{t} + \gamma_i \cdot t,
 \end{equation}
-
-This model captures three essential components: $\alpha_i$ represents invariant computational overhead, $\frac{\beta_i}{t}$ reflects the parallelizable workload component that scales inversely with thread count, and $\gamma_i \cdot t$ quantifies thread management overhead that increases linearly with thread allocation. This formulation encapsulates the fundamental parallelization tradeoff between computational acceleration and synchronization costs.
+This model captures three essential components: $\alpha_i$ represents invariant computational overhead independent of thread count, $\frac{\beta_i}{t}$ reflects the parallelizable workload component that scales inversely with thread count, and $\gamma_i \cdot t$ quantifies thread management overhead that increases linearly with thread allocation. The formulation encapsulates the fundamental parallelization tradeoff between computational acceleration and synchronization costs.
 
 \subsubsection{Optimal Thread Determination}
 
@@ -208,16 +202,13 @@ By minimizing $T(g_i, t)$ with respect to $t$, the optimal thread allocation $t_
 
 \begin{equation}
   \label{eq:optimal_thread_count}
-  t_i^* = \sqrt{\frac{\beta_i}{\gamma_i}}
+  t_i^* = \sqrt{\frac{\beta_i}{\gamma_i}},
 \end{equation}
-
-The parameters $\alpha_i$, $\beta_i$, and $\gamma_i$ were determined through rigorous profiling of each cryptographic operation across multiple thread configurations, establishing an empirical basis for optimization decisions.
+The parameters $\alpha_i$, $\beta_i$, and $\gamma_i$ were determined through systematic profiling of each cryptographic operation across multiple thread configurations, establishing an empirical foundation for optimization decisions.
 
 \subsubsection{Dynamic Implementation}
 
-The thread allocation optimization is implemented according to Algorithm~\ref{alg:adaptive_thread_allocation}.
-
-% here maybe can writing more thing.
+The thread allocation optimization follows the methodology outlined in Algorithm~\ref{alg:adaptive_thread_allocation}.
 
 \begin{algorithm}
   \caption{Adaptive Thread Allocation (ATA)}
@@ -238,29 +229,27 @@ The thread allocation optimization is implemented according to Algorithm~\ref{al
   \end{algorithmic}
 \end{algorithm}
 
-This architecture dynamically balances parallelism against synchronization overhead, yielding precise resource allocation tailored to each cryptographic operation. The thread configuration is maintained in GPU constant memory for negligible-latency access during execution, ensuring computational efficiency without introducing additional runtime overhead.
+This architecture dynamically balances parallelism against synchronization overhead, yielding precise resource allocation tailored to each cryptographic operation. The thread configuration resides in GPU constant memory for low-latency access during execution, ensuring computational efficiency without introducing additional runtime overhead.
+
+\color{black}
 
 \subsection{Function-Level Parallelization}
 
-The implementation introduces fine-grained parallelization at the hash function level, departing from conventional approaches that treat hash functions as atomic operations. This technique reduces cryptographic operation latency by decomposing hash operations into parallel tasks distributed across multiple threads.
+Our implementation introduces fine-grained parallelization at the hash function level, departing from conventional approaches that treat hash functions as atomic operations. This technique reduces cryptographic operation latency by decomposing hash computations into parallel tasks distributed across multiple threads.
 
 \subsubsection{Internal State Parallelism}
 
-% NOTE: here use the concise figure to show the internal state parallelism more great.
+The approach decomposes hash function operations into concurrent tasks executed in parallel by multiple threads within a single warp. For SHA256, the internal state transformations are parallelized through three primary mechanisms:
 
-The approach decomposes hash function operations into concurrent tasks that can be executed in parallel by multiple threads within a single warp. For SHA256, the internal state transformations are parallelized as follows:
+First, state initialization is distributed across multiple threads that concurrently initialize different portions of the hash function's state array. Thread 0 handles initial state setup, while threads 0-15 cooperatively load message words in parallel, significantly reducing initialization latency.
 
-\begin{itemize}
-  \item \textbf{State Initialization}: Multiple threads concurrently initialize different portions of the hash function's state array. Thread 0 handles initial state setup, while threads 0-15 cooperatively load message words in parallel, reducing initialization overhead.
+Second, each round of the SHA256 permutation is decomposed into lane operations executed concurrently by different threads. Threads 0-15 process message schedule expansion, while threads 0-7 manage state variable updates during round computation.
 
-  \item \textbf{Round Functions}: Each round of the SHA256 permutation is decomposed into lane operations executed concurrently by different threads. Threads 0-15 process message schedule expansion, while threads 0-7 manage state variable updates during round computation.
+Third, warp-level primitives (\texttt{\_\_shfl\_sync()}) enable efficient data sharing without requiring expensive shared memory operations. These synchronized operations allow threads within a warp to exchange data with minimal divergence, enhancing computational throughput.
 
-  \item \textbf{Data Sharing}: Warp-level primitives  \texttt{\_\_shfl\_sync()} enable efficient data sharing without requiring expensive shared memory operations. These synchronized operations allow threads within a warp to exchange data with minimal divergence, enhancing computational efficiency.
-\end{itemize}
+\subsubsection{Task Distribution}
 
-\subsubsection{Task Distribution }
-
-A hierarchical task allocation scheme is implemented to efficiently distribute hash function operations across GPU threads:
+A hierarchical task allocation scheme efficiently distributes hash function operations across GPU threads:
 
 \begin{algorithm}
   \caption{Hash-Function-Level Task Distribution}
@@ -281,13 +270,7 @@ A hierarchical task allocation scheme is implemented to efficiently distribute h
   \end{algorithmic}
 \end{algorithm}
 
-The task distribution strategy is optimized for SHA256 operations within SPHINCS\textsuperscript{+}, where hash function calls account for over 90\% of computational workload. The implementation employs a tiered approach where:
-
-\begin{itemize}
-  \item At the intra-warp level, 16 threads collaborate on a single hash computation with specific state variable assignments
-  \item At the block level, multiple warps process independent hash operations concurrently
-  \item At the grid level, optimal workload distribution is maintained with 128 blocks of 256 threads per block
-\end{itemize}
+The task distribution strategy is optimized for SHA256 operations within SPHINCS\textsuperscript{+}, where hash function calls constitute over 90\% of computational workload. The implementation employs a tiered approach where at the intra-warp level, 16 threads collaborate on a single hash computation with specific state variable assignments; at the block level, multiple warps process independent hash operations concurrently; and at the grid level, optimal workload distribution is maintained with 128 blocks of 256 threads per block.
 
 For WOTS+ chain computations, which constitute approximately 70\% of the signature generation workload, this task distribution achieves a 5.3x speedup compared to conventional single-thread-per-hash implementations.
 
