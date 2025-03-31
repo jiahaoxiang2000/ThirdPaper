@@ -55,7 +55,6 @@
 \maketitle
 
 \begin{abstract}
-\textcolor{blue}{
 The imminent threat posed by quantum computing necessitates an urgent transition to Post-Quantum Cryptography (PQC) to safeguard sensitive data against future cryptanalytic attacks.
 The stateless hash-based digital signature algorithm (SLH-DSA) FIPS 205, while quantum-resistant, presents significant computational challenges for practical deployment.
 This research presents a GPU-accelerated implementation of SLH-DSA that employs a thread-adaptive parallelization methodology to maximize throughput.
@@ -63,14 +62,13 @@ In contrast to conventional approaches utilizing fixed maximum thread allocation
 Furthermore, granular decomposition of signature components is implemented to enhance thread-level execution performance.
 Performance evaluation conducted on an NVIDIA RTX 4090 GPU demonstrates that the implementation attains a throughput of XXX signatures per second, representing a significant performance improvement over existing methodologies.
 The empirical results establish GPUs as viable platforms for SLH-DSA acceleration in high-throughput environments, thus facilitating the practical transition to post-quantum cryptographic standards.
-}
+
 \end{abstract}
 
 \begin{IEEEkeywords}
   FIPS 205, GPU, SPHINCS\textsuperscript{+}, Signature algorithm.
 \end{IEEEkeywords}
 
-\color{blue}
 
 \section{Introduction}
 \label{sec:intro}
@@ -231,7 +229,6 @@ The thread allocation optimization follows the methodology outlined in Algorithm
 
 This architecture dynamically balances parallelism against synchronization overhead, yielding precise resource allocation tailored to each cryptographic operation. The thread configuration resides in GPU constant memory for low-latency access during execution, ensuring computational efficiency without introducing additional runtime overhead.
 
-\color{black}
 
 \subsection{Function-Level Parallelization}
 
@@ -274,7 +271,6 @@ The task distribution strategy is optimized for SHA256 operations within SPHINCS
 
 For WOTS+ chain computations, which constitute approximately 70\% of the signature generation workload, this task distribution achieves a 5.3x speedup compared to conventional single-thread-per-hash implementations.
 
-\color{blue}
 
 \section{Performance Evaluation}\label{sec:evaluation}
 
@@ -392,7 +388,6 @@ Optimized (ATA+FLP) & & & \\
 
 % \subsection{Real-world Application Performance}
 
-\color{black}
 
 % on the performance evaluation, first we should to show the best case. then divide the part work add to experiment see the results, which can prove the efficiency of our approach.
 
