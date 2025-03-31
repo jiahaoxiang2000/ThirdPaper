@@ -1,0 +1,15 @@
+dictionaries = []
+words = [
+    "ata",
+    "bitsliced",
+    "dsa",
+    "flp",
+    "jiahaoxiang",
+    "slh",
+    "sphincs",
+    "spn",
+]
+flag_words = []
+ignore_paths = []
+ignore_patterns = []
+use_global = true
