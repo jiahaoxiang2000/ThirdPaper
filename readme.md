@@ -13,6 +13,16 @@ Additionally, Quantum cryptography is gaining significant popularity in 2025 and
 
 For more details, please refer to the [background folder](./background/)
 
+## TODO
+
+_Mon Mar 31 15:42:59 CST 2025_
+
+- [ ] add the metic/view to explain our job, now like use the Primitive Operation Parapller Efficient (POPE) ref issue https://github.com/jiahaoxiang2000/ThirdPaper/issues/2
+  - [ ] need do more expriment, find the writing angle.
+- [ ] finish the expriment section, add the data for figure and table, ref issue https://github.com/jiahaoxiang2000/ThirdPaper/issues/4
+  - [ ] add the ATA, FLP isolated test, then ATA+FLP.
+  - [ ] add the ATA+FLP to different parameters set.
+
 ## experiment platform
 
 we all GPU code is on the [sphincs-plus](https://github.com/jiahaoxiang2000/sphincs-plus), (maybe we call the SLH-DSA more great).
