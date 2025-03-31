@@ -31,6 +31,11 @@
 \usepackage{tikz}
 \usetikzlibrary{shapes,arrows,positioning,calc,shadows}
 
+%=============Suggested================
+% - the fig:optimization_architecture can zoom out the figure font size.
+%
+%=============Suggested================
+
 \begin{document}
 
 \title{Thread-Adaptive: Optimized Parallel Architectures of SLH-DSA on GPUs}
@@ -114,9 +119,9 @@ The paper is structured as follows: Section~\ref{sec:preliminaries} presents the
 SLH-DSA represents a stateless hash-based signature scheme that provides post-quantum security through hierarchical certification architecture. The signature generation mechanism comprises three fundamental components:
 
 \begin{itemize}
-  \item \textbf{WOTS+ (Winternitz One-Time Signature)}: A one-time scheme facilitating authentication paths and supporting Merkle tree construction
+  \item \textbf{WOTS\textsuperscript{+} (Winternitz One-Time Signature)}: A one-time scheme facilitating authentication paths and supporting Merkle tree construction
   \item \textbf{FORS (Forest Of Random Subsets)}: A few-time signature scheme utilizing $k$ components, each containing $t$ elements selected from pseudorandom subsets
-  \item \textbf{Hypertree}: A multi-layer structure with height $h$ divided into $d$ layers, each containing Merkle trees of height $h/d$ for WOTS+ public key authentication
+  \item \textbf{Hypertree}: A multi-layer structure with height $h$ divided into $d$ layers, each containing Merkle trees of height $h/d$ for WOTS\textsuperscript{+} public key authentication
 \end{itemize}
 
 \begin{figure}[t]
@@ -151,15 +156,15 @@ SLH-DSA represents a stateless hash-based signature scheme that provides post-qu
     \draw[arrow] ($(htd)+(0,-0.5)$) -- (htd);
     \draw[dashed,thick,gray!60] ($(ht2)+(0,0.5)$) -- ($(htd)+(0,-0.3)$);
 
-    \node[left=0.6cm of ht1,text width=1.4cm,font=\footnotesize,align=right] {WOTS+ Signs Root};
-    \node[left=0.6cm of ht2,text width=1.4cm,font=\footnotesize,align=right] {WOTS+ Signs Root};
+    \node[left=0.6cm of ht1,text width=1.4cm,font=\footnotesize,align=right] {WOTS\textsuperscript{+} Signs Root};
+    \node[left=0.6cm of ht2,text width=1.4cm,font=\footnotesize,align=right] {WOTS\textsuperscript{+} Signs Root};
     \node[left=0.6cm of htd,text width=1.4cm,font=\footnotesize,align=right] {Final Root};
   \end{tikzpicture}
-  \caption{SLH-DSA signature generation flow. A message hash undergoes FORS signing to produce $k$ authentication paths, subsequently authenticated by a $d$-layer hypertree. Each layer employs WOTS+ to sign the previous layer's root, culminating in a final root signature.}
+  \caption{SLH-DSA signature generation flow. A message hash undergoes FORS signing to produce $k$ authentication paths, subsequently authenticated by a $d$-layer hypertree. Each layer employs WOTS\textsuperscript{+} to sign the previous layer's root, culminating in a final root signature.}
   \label{fig:sphincs-process}
 \end{figure}
 
-The SLH-DSA signature generation process, illustrated in Figure~\ref{fig:sphincs-process}, implements a hierarchical authentication structure. Initially, a message digest is generated through hashing, followed by FORS few-time scheme signing, which produces $k$ authentication paths comprising $t$ elements each. The resulting FORS public key undergoes authentication via a $d$-layer hypertree, where each layer applies WOTS+ to sign the lower layer's root. This signature chain terminates at the final root node, enabling efficient verification while maintaining robust hash-based security.
+The SLH-DSA signature generation process, illustrated in Fig.~\ref{fig:sphincs-process}, implements a hierarchical authentication structure. Initially, a message digest is generated through hashing, followed by FORS few-time scheme signing, which produces $k$ authentication paths comprising $t$ elements each. The resulting FORS public key undergoes authentication via a $d$-layer hypertree, where each layer applies WOTS\textsuperscript{+} to sign the lower layer's root. This signature chain terminates at the final root node, enabling efficient verification while maintaining robust hash-based security.
 
 SLH-DSA offers ``simple" and ``robust" operational modes to optimize speed-security trade-offs. Various parameter sets accommodate different requirements regarding signature size, security level, and computational efficiency. The scheme derives all security properties from underlying hash functions, rendering it resistant to quantum computational attacks.
 
@@ -171,7 +176,7 @@ The CUDA framework enhances computational throughput through memory optimization
 
 \section{Optimized Implementation of SLH-DSA}\label{sec:implementation}
 
-This section presents a novel optimization framework for SLH-DSA that employs a dual-component architecture, as illustrated in Figure \ref{fig:optimization_architecture}. The framework integrates Adaptive Thread Allocation (ATA) with Function-Level Parallelism (FLP) to maximize computational efficiency while preserving cryptographic integrity.
+This section presents a novel optimization framework for SLH-DSA that employs a dual-component architecture, as illustrated in Fig.~\ref{fig:optimization_architecture}. The framework integrates Adaptive Thread Allocation (ATA) with Function-Level Parallelism (FLP) to maximize computational efficiency while preserving cryptographic integrity.
 
 \begin{figure}[htbp]
   \centering
