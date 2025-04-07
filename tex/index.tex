@@ -60,20 +60,19 @@
 \maketitle
 
 \begin{abstract}
-The imminent threat posed by quantum computing necessitates an urgent transition to Post-Quantum Cryptography (PQC) to safeguard sensitive data against future cryptanalytic attacks.
-The stateless hash-based digital signature algorithm (SLH-DSA) FIPS 205, while quantum-resistant, presents significant computational challenges for practical deployment.
-This research presents a GPU-accelerated implementation of SLH-DSA that employs a thread-adaptive parallelization methodology to maximize throughput.
-In contrast to conventional approaches utilizing fixed maximum thread allocation, the proposed implementation dynamically optimizes parallelism levels for individual cryptographic kernel functions, thereby establishing an equilibrium between thread utilization and execution efficiency.
-Furthermore, granular decomposition of signature components is implemented to enhance thread-level execution performance.
-Performance evaluation conducted on an NVIDIA RTX 4090 GPU demonstrates that the implementation attains a throughput of XXX signatures per second, representing a significant performance improvement over existing methodologies.
-The empirical results establish GPUs as viable platforms for SLH-DSA acceleration in high-throughput environments, thus facilitating the practical transition to post-quantum cryptographic standards.
+  The imminent threat posed by quantum computing necessitates an urgent transition to Post-Quantum Cryptography (PQC) to safeguard sensitive data against future cryptanalytic attacks.
+  The stateless hash-based digital signature algorithm (SLH-DSA) FIPS 205, while quantum-resistant, presents significant computational challenges for practical deployment.
+  This research presents a GPU-accelerated implementation of SLH-DSA that employs a thread-adaptive parallelization methodology to maximize throughput.
+  In contrast to conventional approaches utilizing fixed maximum thread allocation, the proposed implementation dynamically optimizes parallelism levels for individual cryptographic kernel functions, thereby establishing an equilibrium between thread utilization and execution efficiency.
+  Furthermore, granular decomposition of signature components is implemented to enhance thread-level execution performance.
+  Performance evaluation conducted on an NVIDIA RTX 4090 GPU demonstrates that the implementation attains a throughput of XXX signatures per second, representing a significant performance improvement over existing methodologies.
+  The empirical results establish GPUs as viable platforms for SLH-DSA acceleration in high-throughput environments, thus facilitating the practical transition to post-quantum cryptographic standards.
 
 \end{abstract}
 
 \begin{IEEEkeywords}
   FIPS 205, GPU, SPHINCS\textsuperscript{+}, Signature algorithm.
 \end{IEEEkeywords}
-
 
 \section{Introduction}
 \label{sec:intro}
@@ -106,11 +105,10 @@ This paper presents a thread-adaptive GPU-based implementation of SLH-DSA with t
   \item A sophisticated function-level parallelization approach that strategically decomposes cryptographic operations into independent computational tasks, significantly reducing latency and enhancing the performance of core SLH-DSA primitives.
 
   \item Performance evaluation on NVIDIA GPU architecture demonstrating a throughput of XXX SLH-DSA signatures per second, representing substantial improvement over state-of-the-art implementations.
-  The complete implementation is available as an open-source repository at \url{https://github.com/jiahaoxiang2000/sphincs-plus}.
+    The complete implementation is available as an open-source repository at \url{https://github.com/jiahaoxiang2000/sphincs-plus}.
 \end{enumerate}
 
 The paper is structured as follows: Section~\ref{sec:preliminaries} presents the fundamental concepts of the SLH-DSA signature scheme; Section~\ref{sec:implementation} describes the architectural design and implementation details; Section~\ref{sec:evaluation} analyzes performance results and comparative metrics; and Section~\ref{sec:conclusion} summarizes findings and discusses future research directions.
-
 
 \section{Preliminaries}\label{sec:preliminaries}
 
@@ -234,7 +232,6 @@ The thread allocation optimization follows the methodology outlined in Algorithm
 
 This architecture dynamically balances parallelism against synchronization overhead, yielding precise resource allocation tailored to each cryptographic operation. The thread configuration resides in GPU constant memory for low-latency access during execution, ensuring computational efficiency without introducing additional runtime overhead.
 
-
 \subsection{Function-Level Parallelization}
 
 Our implementation introduces fine-grained parallelization at the hash function level, departing from conventional approaches that treat hash functions as atomic operations. This technique reduces cryptographic operation latency by decomposing hash computations into parallel tasks distributed across multiple threads.
@@ -276,7 +273,6 @@ The task distribution strategy is optimized for SHA256 operations within SPHINCS
 
 For WOTS+ chain computations, which constitute approximately 70\% of the signature generation workload, this task distribution achieves a 5.3x speedup compared to conventional single-thread-per-hash implementations.
 
-
 \section{Performance Evaluation}\label{sec:evaluation}
 
 This section presents a comprehensive empirical analysis of the optimized SLH-DSA implementation, evaluating both the effectiveness of the proposed optimization techniques and the overall cryptographic performance characteristics across diverse computational environments.
@@ -286,115 +282,111 @@ This section presents a comprehensive empirical analysis of the optimized SLH-DS
 The evaluation framework was established on multiple hardware platforms to enable comparative analysis across different computational architectures. The experimental environment comprised:
 
 \begin{table}[h]
-\centering
-\caption{Experimental Hardware Configuration}
-\label{tab:hardware_config}
-\begin{tabular}{@{}ll@{}}
-\toprule
-\textbf{Component} & \textbf{GPU System} \\
-\midrule
-Processor & NVIDIA RTX 4090 \\
-Memory & 24GB GDDR6X \\
-Operating System & Ubuntu 24.04 LTS \\
-Compiler & CUDA 12.5, GCC 13.3.0 \\
-\bottomrule
-\end{tabular}
+  \centering
+  \caption{Experimental Hardware Configuration}
+  \label{tab:hardware_config}
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    \textbf{Component} & \textbf{GPU System} \\
+    \midrule
+    Processor & NVIDIA RTX 4090 \\
+    Memory & 24GB GDDR6X \\
+    Operating System & Ubuntu 24.04 LTS \\
+    Compiler & CUDA 12.5, GCC 13.3.0 \\
+    \bottomrule
+  \end{tabular}
 \end{table}
 
 The implementation was evaluated using the standardized NIST parameter sets for SLH-DSA at security levels 1, 3, and 5, corresponding to 128, 192, and 256 bits of security, respectively. Each measurement was repeated 1,000 times to ensure statistical significance, with outlier rejection using median absolute deviation techniques.
 
+\color{blue}
+
 \subsection{Thread Allocation Efficiency}
 
-The efficacy of the Adaptive Thread Allocation (ATA) was evaluated by measuring execution times across varying thread configurations for each core cryptographic function. Figure \ref{fig:thread_efficiency} illustrates the relationship between thread allocation and computational performance.
+The efficacy of Adaptive Thread Allocation (ATA) was evaluated by measuring execution times across varying thread configurations for core cryptographic functions. Figure \ref{fig:thread_efficiency} illustrates the relationship between thread allocation and computational performance.
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.48\textwidth]{../sphincs-plus/fig/thread_efficiency.pdf}
-  \caption{Performance variation with thread allocation for key SLH-DSA operations. The optimized thread allocation (indicated by markers) consistently approximates the empirical performance minimum, validating the theoretical model in Equation \ref{eq:optimal_thread_count}.}
+  \caption{Performance variation with thread allocation for key SLH-DSA operations. Optimized thread allocations (marked) consistently approximate the empirical performance minimum, validating the model in Equation \ref{eq:optimal_thread_count}.}
   \label{fig:thread_efficiency}
 \end{figure}
 
-% The experimental results demonstrate that the mathematically derived optimal thread allocations closely align with empirically observed performance minima. For SHA-256 operations, the model predicted 64 threads per block as optimal, which yielded a 27.3\% performance improvement over the conventional 256-thread allocation. Similarly, WOTS+ chain computations achieved a 19.8\% latency reduction using the model-determined thread configuration of 128 threads.
+Table \ref{tab:thread_model_params} presents the experimentally derived model parameters and optimal thread allocations for key SLH-DSA operations.
 
-% The accuracy of the performance model in Equation \ref{eq:execution_time_model} was validated through regression analysis, yielding an average $R^2$ value of 0.94 across all cryptographic operations, confirming the model's predictive validity for thread optimization.
+\begin{table}[h]
+  \color{blue}
+  \centering
+  \caption{Thread Model Parameters and Optimal Allocations}
+  \label{tab:thread_model_params}
+  \begin{tabular}{@{}lrrrr@{}}
+    \toprule
+    \textbf{Operation} & \boldmath$\alpha_i$ & \boldmath$\beta_i$ & \boldmath$\gamma_i$ & \boldmath$t_i^*$ \\
+    \midrule
+    128F-keypair & 52.06 & 506,000.57 & 1.26E-4 & 63,310 \\
+    128F-sign & 1386.01 & 13,231,567.75 & 3.60E-3 & 60,636 \\
+    128F-verify & 164.72 & 1,395,012.54 & 4.54E-4 & 55,407 \\
+    128S-keypair & 3317.74 & 32,046,199.26 & 7.15E-3 & 66,929 \\
+    128S-sign & 23716.81 & 248,632,501.64 & 6.59E-2 & 61,419 \\
+    128S-verify & 63.22 & 484,914.46 & 1.44E-4 & 57,968 \\
+    192F-keypair & 79.37 & 822,859.78 & 2.40E-4 & 58,560 \\
+    192F-sign & 2319.70 & 23,961,551.63 & 8.55E-3 & 52,932 \\
+    192F-verify & 267.63 & 2,342,878.75 & 8.91E-4 & 51,274 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Performance confirm that operating at non optimal thread counts introduces substantial inefficiency.
+When theoretical thread counts were rounded to the nearest power of 2 for implementation (typically 32,768), measurements showed 10-20\% performance improvements compared to standard fixed-thread approaches, empirically validating the effectiveness of the adaptive thread allocation model.
+
+\color{black}
 
 \subsection{Function-Level Parallelism Impact}
 
 The effectiveness of the Function-Level Parallelism (FLP) technique was assessed by comparing execution times against conventional parallelization approaches. Table \ref{tab:flp_impact} presents the performance improvement achieved through FLP implementation.
 
 \begin{table}[h]
-\centering
-\caption{Performance Impact of Function-Level Parallelism}
-\label{tab:flp_impact}
-\begin{tabular}{@{}lcc@{}}
-\toprule
-\textbf{Operation} & \textbf{Speedup Factor} & \textbf{Utilization Increase} \\
-\midrule
-% SHA-256 Hash & 3.7$\times$ & 42.6\% \\
-% WOTS+ Chain Computation & 5.3$\times$ & 67.8\% \\
-% Tree Construction & 4.1$\times$ & 51.4\% \\
-% Overall Signing & 4.5$\times$ & 58.3\% \\
-\bottomrule
-\end{tabular}
+  \centering
+  \caption{Performance Impact of Function-Level Parallelism}
+  \label{tab:flp_impact}
+  \begin{tabular}{@{}lcc@{}}
+    \toprule
+    \textbf{Operation} & \textbf{Speedup Factor} & \textbf{Utilization Increase} \\
+    \midrule
+    % SHA-256 Hash & 3.7$\times$ & 42.6\% \\
+    % WOTS+ Chain Computation & 5.3$\times$ & 67.8\% \\
+    % Tree Construction & 4.1$\times$ & 51.4\% \\
+    % Overall Signing & 4.5$\times$ & 58.3\% \\
+    \bottomrule
+  \end{tabular}
 \end{table}
-
-% The most significant performance enhancements were observed in WOTS+ chain computations, which exhibited a 5.3$\times$ speedup compared to traditional thread-per-hash implementations. This improvement stems from the efficient parallelization of internal hash state operations and the reduction in thread synchronization overhead.
-
-% GPU utilization metrics, measured using NVIDIA profiling tools, indicate that the FLP approach substantially increases computational efficiency. The utilization increase of 58.3\% for overall signing operations demonstrates more effective use of GPU resources through fine-grained parallelism.
 
 \subsection{Comparative Performance Analysis}
 
 The optimized implementation was benchmarked against current state-of-the-art implementations, including the NIST reference implementation and existing GPU implementations from related literature. Figure \ref{fig:comparative_perf} illustrates the relative performance across key cryptographic operations.
 
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.48\textwidth]{./fig/comparative_perf.pdf}
-  \caption{Comparative performance of cryptographic operations across implementations. Lower values represent better performance.}
-  \label{fig:comparative_perf}
-\end{figure}
-
-% The integrated optimization approach combining ATA and FLP demonstrates substantial performance improvements across all security levels. At security level 1 (SLH-DSA-128s), key generation is accelerated by 5.2$\times$, signature generation by 4.5$\times$, and verification by 3.9$\times$ compared to the baseline GPU implementation. The performance advantages are maintained across higher security levels, with the relative improvement increasing with computational complexity.
-
-% When compared to CPU-based implementations, the optimization framework achieves even more significant speedups: 18.7$\times$ for key generation, 21.3$\times$ for signature generation, and 16.9$\times$ for verification at security level 1.
-
 \subsection{Scalability Analysis}
 
 The scalability characteristics of the optimized implementation were evaluated across varying problem sizes and security parameters. Figure \ref{fig:scalability} presents execution time scaling for signature generation across different security levels.
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.48\textwidth]{./fig/scalability.pdf}
-  \caption{Signature generation time scaling across security levels, demonstrating near-linear complexity relationships with respect to security parameter increases.}
-  \label{fig:scalability}
-\end{figure}
-
-% The results demonstrate favorable scaling characteristics with increasing security parameters. The performance degradation when moving from security level 1 to level 5 is limited to a factor of 2.8$\times$, despite the theoretical work increase of approximately 4$\times$. This sub-linear scaling can be attributed to more efficient resource utilization at higher computational loads, where thread management overhead becomes proportionally less significant.
 
 \subsection{Energy Efficiency}
 
 Energy consumption metrics were collected to evaluate the power efficiency implications of the optimization framework. Table \ref{tab:energy_efficiency} compares the energy requirements per cryptographic operation.
 
 \begin{table}[h]
-\centering
-\caption{Energy Efficiency Comparison (Joules per Operation)}
-\label{tab:energy_efficiency}
-\begin{tabular}{@{}lccc@{}}
-\toprule
-\textbf{Implementation} & \textbf{Key Gen} & \textbf{Sign} & \textbf{Verify} \\
-\midrule
-CPU Reference & & & \\
-Baseline GPU & & & \\
-Optimized (ATA+FLP) & & & \\
-\bottomrule
-\end{tabular}
+  \centering
+  \caption{Energy Efficiency Comparison (Joules per Operation)}
+  \label{tab:energy_efficiency}
+  \begin{tabular}{@{}lccc@{}}
+    \toprule
+    \textbf{Implementation} & \textbf{Key Gen} & \textbf{Sign} & \textbf{Verify} \\
+    \midrule
+    CPU Reference & & & \\
+    Baseline GPU & & & \\
+    Optimized (ATA+FLP) & & & \\
+    \bottomrule
+  \end{tabular}
 \end{table}
-
-% The optimized implementation demonstrates superior energy efficiency, requiring 71.5\% less energy for key generation and 71.8\% less for signature operations compared to the baseline GPU implementation. This efficiency gain is attributable to reduced execution time and more efficient computational resource utilization.
-
-% \subsection{Real-world Application Performance}
-
-
-% on the performance evaluation, first we should to show the best case. then divide the part work add to experiment see the results, which can prove the efficiency of our approach.
 
 \section{Conclusion}\label{sec:conclusion}
 
