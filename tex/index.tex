@@ -415,6 +415,8 @@ The scalability characteristics of the optimized implementation were evaluated a
   \end{tabular}
 \end{table}
 
+% TODO: the S not equiv to small, need to check.
+
 Table~\ref{tab:scalability} demonstrates superior performance of the optimized implementation across all parameter sets, particularly for ``small" variants. SPHINCS$^+$-128s shows the most significant gains with 25\% latency reduction and 33.5\% throughput improvement. The thread-adaptive approach proves especially effective for computationally intensive operations with smaller hash sizes. Security level impacts optimization effectiveness, with level 1 (128-bit) parameters gaining more than level 3 (192-bit) counterparts due to increased synchronization overhead at higher security levels.
 
 \color{black}
