@@ -298,9 +298,7 @@ The evaluation framework was established on multiple hardware platforms to enabl
   \end{tabular}
 \end{table}
 
-The implementation was evaluated using the standardized NIST parameter sets for SLH-DSA at security levels 1, 3, and 5, corresponding to 128, 192, and 256 bits of security, respectively. Each measurement was repeated 1,000 times to ensure statistical significance, with outlier rejection using median absolute deviation techniques.
-
-\color{blue}
+The implementation was evaluated using the standardized NIST parameter sets for SLH-DSA at security levels 1, and 3 corresponding to 128, and 192 bits of security, respectively. Each measurement was repeated 1,000 times to ensure statistical significance, with outlier rejection using median absolute deviation techniques.
 
 \subsection{Thread Allocation Efficiency}
 
@@ -316,7 +314,6 @@ The efficacy of Adaptive Thread Allocation (ATA) was evaluated by measuring exec
 Table \ref{tab:thread_model_params} presents the experimentally derived model parameters and optimal thread allocations for key SLH-DSA operations.
 
 \begin{table}[h]
-  \color{blue}
   \centering
   \caption{Thread Model Parameters and Optimal Allocations}
   \label{tab:thread_model_params}
@@ -340,8 +337,6 @@ Table \ref{tab:thread_model_params} presents the experimentally derived model pa
 Performance confirm that operating at non optimal thread counts introduces substantial inefficiency.
 When theoretical thread counts were rounded to the nearest power of 2 for implementation (typically 32,768), measurements showed 10-20\% performance improvements compared to standard fixed-thread approaches, empirically validating the effectiveness of the adaptive thread allocation model.
 
-\color{black}
-
 \subsection{Function-Level Parallelism Impact}
 
 The effectiveness of the Function-Level Parallelism (FLP) technique was assessed by comparing execution times against conventional parallelization approaches. Table \ref{tab:flp_impact} presents the performance improvement achieved through FLP implementation.
@@ -362,14 +357,11 @@ The effectiveness of the Function-Level Parallelism (FLP) technique was assessed
   \end{tabular}
 \end{table}
 
-\color{blue}
-
 \subsection{Comparative Performance Analysis}
 
 The optimized implementation was benchmarked against state-of-the-art implementations using the SPHINCS$^+$-128f parameter set. Table \ref{tab:comparative_perf} presents latency and throughput metrics for key generation (KG), signature creation (Sign), and verification (Verify) operations across implementations executed on comparable hardware platforms.
 
 \begin{table*}[t]
-  \color{blue}
   \centering
   \caption{Performance Comparison of SLH-DSA Implementations}
   \label{tab:comparative_perf}
@@ -392,8 +384,6 @@ The optimized implementation was benchmarked against state-of-the-art implementa
 
 Performance demonstrate consistent improvements across all cryptographic operations when compared to the reimplementation of \cite{Wang2025} on identical hardware.
 Key generation latency decreased by 9.55\%, signature generation by 13.55\%, and verification by 10.03\%. These latency reductions translate to throughput increases of 10.60\%, 15.68\%, and 11.14\% respectively, with the most substantial improvements observed in signature generation operations.
-
-\color{black}
 
 \subsection{Scalability Analysis}
 
