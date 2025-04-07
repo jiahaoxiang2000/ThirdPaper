@@ -30,6 +30,7 @@
 \usepackage{listings}
 \usepackage{tikz}
 \usetikzlibrary{shapes,arrows,positioning,calc,shadows}
+\usepackage{multirow}
 
 %=============Suggested================
 % - the fig:optimization_architecture can zoom out the figure font size.
@@ -363,7 +364,31 @@ The effectiveness of the Function-Level Parallelism (FLP) technique was assessed
 
 \subsection{Comparative Performance Analysis}
 
-The optimized implementation was benchmarked against current state-of-the-art implementations, including the NIST reference implementation and existing GPU implementations from related literature. Figure \ref{fig:comparative_perf} illustrates the relative performance across key cryptographic operations.
+The optimized implementation was benchmarked against the original implementation using the SPHINCS$^+$-128f parameter set. Table \ref{tab:comparative_perf} presents the performance metrics for key generation, signature creation, and verification operations across both implementations.
+
+\begin{table*}[t]
+  \centering
+  \caption{Performance Comparison of SLH-DSA Implementations}
+  \label{tab:comparative_perf}
+  \begin{tabular}{@{}lccccccc@{}}
+    \toprule
+    \multirow{2}{*}{\textbf{Parameter Sets, Year [Work]}} & \multicolumn{3}{c}{\textbf{Latency (ms)}} & \multicolumn{3}{c}{\textbf{Throughput (tasks/sec)}} & \multirow{2}{*}{\textbf{Device}} \\
+    \cmidrule(lr){2-4} \cmidrule(lr){5-7}
+    & \textbf{KG} & \textbf{Sign} & \textbf{Verify} & \textbf{KG} & \textbf{Sign} & \textbf{Verify} & \\
+    \midrule
+    SPHINCS$^+$-128f, 2025 \cite{Wang2025} & 32.07 & 924.24 & 119.16 & 1,309,136  & 45,425  & 352,333  & RTX 3090 \\
+    SPHINCS$^+$-128f, 2025 \cite{Wang2025}$^\dagger$ & 22.82 & 609.03 & 72.51 & 1,435,690 & 53,804 & 451,883 & RTX 4090 \\
+    SPHINCS$^+$-128f, This work & 20.64 & 526.48 & 65.24 & 1,587,849 & 62,239 & 502,243 & RTX 4090 \\
+    \bottomrule
+  \end{tabular}
+  \begin{tablenotes}
+  \item[] $\dagger$ Results obtained by running previously published implementations on our RTX 4090 test environment for direct comparison.
+  \end{tablenotes}
+\end{table*}
+
+The results demonstrate consistent performance improvements across all cryptographic operations. Key generation latency decreased by 9.55\%, while signature generation—the most computationally intensive operation—saw a more substantial 13.55\% reduction in processing time. Verification operations achieved a 10.03\% latency improvement. These enhancements translate to throughput increases of 10.60\%, 15.68\%, and 11.14\% for key generation, signature creation, and verification respectively.
+
+The most significant performance gains occurred in signature generation, where the thread-adaptive approach was particularly effective due to the operation's computational complexity and hierarchical nature. The combined implementation of Adaptive Thread Allocation and Function-Level Parallelism yielded multiplicative benefits that are most pronounced in operations with substantial hash function utilization, such as the WOTS$^+$ chain computations within the signature generation process.
 
 \subsection{Scalability Analysis}
 
