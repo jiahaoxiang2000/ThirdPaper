@@ -362,56 +362,61 @@ The effectiveness of the Function-Level Parallelism (FLP) technique was assessed
   \end{tabular}
 \end{table}
 
+\color{blue}
+
 \subsection{Comparative Performance Analysis}
 
-The optimized implementation was benchmarked against the original implementation using the SPHINCS$^+$-128f parameter set. Table \ref{tab:comparative_perf} presents the performance metrics for key generation, signature creation, and verification operations across both implementations.
+The optimized implementation was benchmarked against state-of-the-art implementations using the SPHINCS$^+$-128f parameter set. Table \ref{tab:comparative_perf} presents latency and throughput metrics for key generation (KG), signature creation (Sign), and verification (Verify) operations across implementations executed on comparable hardware platforms.
 
 \begin{table*}[t]
+  \color{blue}
   \centering
   \caption{Performance Comparison of SLH-DSA Implementations}
   \label{tab:comparative_perf}
   \begin{tabular}{@{}lccccccc@{}}
     \toprule
-    \multirow{2}{*}{\textbf{Parameter Sets, Year [Work]}} & \multicolumn{3}{c}{\textbf{Latency (ms)}} & \multicolumn{3}{c}{\textbf{Throughput (tasks/sec)}} & \multirow{2}{*}{\textbf{Device}} \\
+    \multirow{2}{*}{\textbf{Parameter Sets, Year [Work], Tasks}} & \multicolumn{3}{c}{\textbf{Latency (ms)}} & \multicolumn{3}{c}{\textbf{Throughput (tasks/sec)}} & \multirow{2}{*}{\textbf{Device}} \\
     \cmidrule(lr){2-4} \cmidrule(lr){5-7}
     & \textbf{KG} & \textbf{Sign} & \textbf{Verify} & \textbf{KG} & \textbf{Sign} & \textbf{Verify} & \\
     \midrule
-    SPHINCS$^+$-128f, 2025 \cite{Wang2025} & 32.07 & 924.24 & 119.16 & 1,309,136  & 45,425  & 352,333  & RTX 3090 \\
-    SPHINCS$^+$-128f, 2025 \cite{Wang2025}$^\dagger$ & 22.82 & 609.03 & 72.51 & 1,435,690 & 53,804 & 451,883 & RTX 4090 \\
-    SPHINCS$^+$-128f, This work & 20.64 & 526.48 & 65.24 & 1,587,849 & 62,239 & 502,243 & RTX 4090 \\
+    SPHINCS$^+$-128f, 2024 \cite{Kim2024}, 512  & 0.71 & 11.53 & 1.79 & 725,118 (55\%) & 44,391 (97\%) & 285,681 (81\%) & RTX 3090 \\
+    SPHINCS$^+$-128f, 2025 \cite{Wang2025}, 41,984 & 32.07 & 924.24 & 119.16 & 1,309,136 (100\%) & 45,425 (100\%) & 352,333 (100\%) & RTX 3090 \\
+    SPHINCS$^+$-128f, 2025 \cite{Wang2025}$^\dagger$, 32,768 & 22.82 & 609.03 & 72.51 & 1,435,690 (109.7\%) & 53,804 (118.4\%) & 451,883 (128.3\%) & RTX 4090 \\
+    SPHINCS$^+$-128f, This work, 32,768 & \textbf{20.64} & \textbf{526.48} & \textbf{65.24} & \textbf{1,587,849} (\textbf{121.3\%}) & \textbf{62,239} (\textbf{137.0\%}) & \textbf{502,243} (\textbf{142.5\%}) & RTX 4090 \\
     \bottomrule
   \end{tabular}
   \begin{tablenotes}
-  \item[] $\dagger$ Results obtained by running previously published implementations on our RTX 4090 test environment for direct comparison.
+  \item[] $\dagger$: Results obtained by executing previously published implementations on the RTX 4090 test environment for direct hardware-equivalent comparison.
   \end{tablenotes}
 \end{table*}
 
-The results demonstrate consistent performance improvements across all cryptographic operations. Key generation latency decreased by 9.55\%, while signature generation—the most computationally intensive operation—saw a more substantial 13.55\% reduction in processing time. Verification operations achieved a 10.03\% latency improvement. These enhancements translate to throughput increases of 10.60\%, 15.68\%, and 11.14\% for key generation, signature creation, and verification respectively.
+Performance demonstrate consistent improvements across all cryptographic operations when compared to the reimplementation of \cite{Wang2025} on identical hardware.
+Key generation latency decreased by 9.55\%, signature generation by 13.55\%, and verification by 10.03\%. These latency reductions translate to throughput increases of 10.60\%, 15.68\%, and 11.14\% respectively, with the most substantial improvements observed in signature generation operations.
 
-The most significant performance gains occurred in signature generation, where the thread-adaptive approach was particularly effective due to the operation's computational complexity and hierarchical nature. The combined implementation of Adaptive Thread Allocation and Function-Level Parallelism yielded multiplicative benefits that are most pronounced in operations with substantial hash function utilization, such as the WOTS$^+$ chain computations within the signature generation process.
+\color{black}
 
 \subsection{Scalability Analysis}
 
-The scalability characteristics of the optimized implementation were evaluated across varying problem sizes and security parameters. Figure \ref{fig:scalability} presents execution time scaling for signature generation across different security levels.
+The scalability characteristics of the optimized implementation were evaluated across varying problem sizes and security parameters. Table \ref{tab:scalability} presents execution time scaling for signature generation across different security levels.
 
-\subsection{Energy Efficiency}
+% \subsection{Energy Efficiency}
 
-Energy consumption metrics were collected to evaluate the power efficiency implications of the optimization framework. Table \ref{tab:energy_efficiency} compares the energy requirements per cryptographic operation.
+% Energy consumption metrics were collected to evaluate the power efficiency implications of the optimization framework. Table \ref{tab:energy_efficiency} compares the energy requirements per cryptographic operation.
 
-\begin{table}[h]
-  \centering
-  \caption{Energy Efficiency Comparison (Joules per Operation)}
-  \label{tab:energy_efficiency}
-  \begin{tabular}{@{}lccc@{}}
-    \toprule
-    \textbf{Implementation} & \textbf{Key Gen} & \textbf{Sign} & \textbf{Verify} \\
-    \midrule
-    CPU Reference & & & \\
-    Baseline GPU & & & \\
-    Optimized (ATA+FLP) & & & \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+% \begin{table}[h]
+%   \centering
+%   \caption{Energy Efficiency Comparison (Joules per Operation)}
+%   \label{tab:energy_efficiency}
+%   \begin{tabular}{@{}lccc@{}}
+%     \toprule
+%     \textbf{Implementation} & \textbf{Key Gen} & \textbf{Sign} & \textbf{Verify} \\
+%     \midrule
+%     CPU Reference & & & \\
+%     Baseline GPU & & & \\
+%     Optimized (ATA+FLP) & & & \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
 
 \section{Conclusion}\label{sec:conclusion}
 
