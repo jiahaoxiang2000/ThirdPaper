@@ -385,28 +385,39 @@ The optimized implementation was benchmarked against state-of-the-art implementa
 Performance demonstrate consistent improvements across all cryptographic operations when compared to the reimplementation of \cite{Wang2025} on identical hardware.
 Key generation latency decreased by 9.55\%, signature generation by 13.55\%, and verification by 10.03\%. These latency reductions translate to throughput increases of 10.60\%, 15.68\%, and 11.14\% respectively, with the most substantial improvements observed in signature generation operations.
 
+\color{blue}
+
 \subsection{Scalability Analysis}
 
 The scalability characteristics of the optimized implementation were evaluated across varying problem sizes and security parameters. Table \ref{tab:scalability} presents execution time scaling for signature generation across different security levels.
 
-% \subsection{Energy Efficiency}
+\begin{table}[h]
+  \color{blue}
+  \centering
+  \caption{Scalability Across SLH-DSA Signature Parameter Sets}
+  \label{tab:scalability}
+  \begin{tabular}{@{}lcc@{}}
+    \toprule
+    \textbf{Parameter Set} & \textbf{Latency (ms)} & \textbf{Throughput (tasks/sec)} \\
+    \midrule
+    SPHINCS$^+$-128f, \cite{Wang2025} & 609.03 & 53,804 \\
+    SPHINCS$^+$-128f & 526.48 & 62,239 \\
+    \midrule
+    SPHINCS$^+$-128s, \cite{Wang2025} & 12,185.35 & 2,689 \\
+    SPHINCS$^+$-128s & 9,125.94 & 3,591 \\
+    \midrule
+    SPHINCS$^+$-192f, \cite{Wang2025} & 1,067.26 & 30,703 \\
+    SPHINCS$^+$-192f & 977.45 & 33,524 \\
+    \midrule
+    SPHINCS$^+$-192s, \cite{Wang2025} & 21,252.11 & 1,542 \\
+    SPHINCS$^+$-192s & 18,711.43 & 1,751 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
-% Energy consumption metrics were collected to evaluate the power efficiency implications of the optimization framework. Table \ref{tab:energy_efficiency} compares the energy requirements per cryptographic operation.
+Table~\ref{tab:scalability} demonstrates superior performance of the optimized implementation across all parameter sets, particularly for ``small" variants. SPHINCS$^+$-128s shows the most significant gains with 25\% latency reduction and 33.5\% throughput improvement. The thread-adaptive approach proves especially effective for computationally intensive operations with smaller hash sizes. Security level impacts optimization effectiveness, with level 1 (128-bit) parameters gaining more than level 3 (192-bit) counterparts due to increased synchronization overhead at higher security levels.
 
-% \begin{table}[h]
-%   \centering
-%   \caption{Energy Efficiency Comparison (Joules per Operation)}
-%   \label{tab:energy_efficiency}
-%   \begin{tabular}{@{}lccc@{}}
-%     \toprule
-%     \textbf{Implementation} & \textbf{Key Gen} & \textbf{Sign} & \textbf{Verify} \\
-%     \midrule
-%     CPU Reference & & & \\
-%     Baseline GPU & & & \\
-%     Optimized (ATA+FLP) & & & \\
-%     \bottomrule
-%   \end{tabular}
-% \end{table}
+\color{black}
 
 \section{Conclusion}\label{sec:conclusion}
 
