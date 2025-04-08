@@ -15,13 +15,13 @@ For more details, please refer to the [background folder](./background/)
 
 ## TODO
 
-_Mon Mar 31 15:42:59 CST 2025_
+_Tue Apr 8 16:04:41 CST 2025_
 
 - [ ] add the metic/view to explain our job, now like use the Primitive Operation Parallel Efficient (POPE) ref issue https://github.com/jiahaoxiang2000/ThirdPaper/issues/2
-  - [ ] need do more experiment, find the writing angle.
-- [ ] finish the experiment section, add the data for figure and table, ref issue https://github.com/jiahaoxiang2000/ThirdPaper/issues/4
-  - [ ] add the ATA, FLP isolated test, then ATA+FLP.
-  - [ ] add the ATA+FLP to different parameters set.
+  - [ ] improve required: need do more experiment, find the writing angle. _priority 2_
+- [ ] finish the experiment section, add the data for figure and table, ref issue https://github.com/jiahaoxiang2000/ThirdPaper/issues/4 _priority 0_
+  - [ ] we only need to add the FLP component experiment.
+  - [ ] here we also need to reflect the FLP component. on the future, we also need to clean the code for only have our experiment code.
 
 ## experiment platform
 
