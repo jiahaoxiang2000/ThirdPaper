@@ -22,6 +22,9 @@ _Tue Apr 8 16:04:41 CST 2025_
 - [ ] finish the experiment section, add the data for figure and table, ref issue https://github.com/jiahaoxiang2000/ThirdPaper/issues/4 _priority 0_
   - [ ] we only need to add the FLP component experiment.
   - [ ] here we also need to reflect the FLP component. on the future, we also need to clean the code for only have our experiment code.
+- [ ] writing improve _priority 1_
+  - [ ] the symbol to same
+  - [ ] special symbol check
 
 ## experiment platform
 
