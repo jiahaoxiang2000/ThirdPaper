@@ -29,12 +29,11 @@
 \newtheorem{proposition}{Proposition}
 \usepackage{listings}
 \usepackage{tikz}
-\usetikzlibrary{shapes,arrows,positioning,calc,shadows}
+\usetikzlibrary{shapes,arrows,positioning,calc,shadows,decorations.pathreplacing}
 \usepackage{multirow}
 
 %=============Suggested================
 % - the fig:optimization_architecture can zoom out the figure font size.
-%
 %=============Suggested================
 
 \begin{document}
@@ -177,12 +176,68 @@ The CUDA framework enhances computational throughput through memory optimization
 
 This section presents a novel optimization framework for SLH-DSA that employs a dual-component architecture, as illustrated in Fig.~\ref{fig:optimization_architecture}. The framework integrates Adaptive Thread Allocation (ATA) with Function-Level Parallelism (FLP) to maximize computational efficiency while preserving cryptographic integrity.
 
-\begin{figure}[htbp]
+\begin{figure*}[htbp]
   \centering
-  \includegraphics[width=0.48\textwidth]{./fig/optimize-overview.drawio.pdf}
+  \begin{tikzpicture}[
+      scale=0.9,
+      box/.style={draw, rounded corners=2pt, minimum width=2.5cm, minimum height=1.2cm, align=center, font=\small, fill=gray!5},
+      thread/.style={draw, rounded corners=2pt, minimum width=1.5cm, minimum height=0.7cm, font=\footnotesize, align=center, fill=blue!5},
+      arrow/.style={->, >=stealth, thick},
+      larrow/.style={->, >=stealth, thick, dashed},
+      darrow/.style={->, >=stealth, thick, dashed, draw=gray!60},
+      function/.style={font=\small}
+    ]
+
+    % Main kernel function
+    \node[box] (g) at (0,0) {Kernel Function\\$g(\cdot,\cdot)$};
+
+    % Function instances
+    \node[box] (g1) at (-4,-2) {Function Instance\\$g_{(\cdot,\cdot)_1}$};
+    \node[box] (g2) at (0,-2) {Function Instance\\$g_{(\cdot,\cdot)_2}$};
+    \node[box] (g3) at (4,-2) {Function Instance\\$g_{(\cdot,\cdot)_n}$};
+
+    % Thread allocation
+    \node[thread] (t1a) at (-5,-4) {Thread 1};
+    \node[thread] (t1b) at (-3,-4) {Thread 2};
+    \node[thread] (t2a) at (-1,-4) {Thread $k$};
+    \node[thread] (t2b) at (1,-4) {Thread $k$+1};
+    \node[thread] (t3a) at (3,-4) {Thread $t$-1};
+    \node[thread] (t3b) at (5,-4) {Thread $t$};
+
+    % Connections
+    \draw[arrow] (g) -- (g1) node[midway, left, function, xshift=-0.2cm] {Decomposition};
+    \draw[arrow] (g) -- (g2);
+    \draw[arrow] (g) -- (g3);
+
+    \draw[arrow] (g1) -- (t1a);
+    \draw[arrow] (g1) -- (t1b);
+
+    \draw[arrow] (g2) -- (t2a);
+    \draw[arrow] (g2) -- (t2b);
+
+    \draw[arrow] (g3) -- (t3a);
+    \draw[arrow] (g3) -- (t3b);
+
+    % Ellipses
+    \node at (2,-2) {$\cdots$};
+    \node at (-4,-4) {$\cdots$};
+    \node at (0,-4) {$\cdots$};
+    \node at (4,-4) {$\cdots$};
+
+    % Dynamic allocation annotation
+    \draw[darrow, bend left=20] (3,0.5) to node[above, text width=4cm, align=center, font=\footnotesize] {Dynamic Thread Allocation Based on Workload} (5,-3.5);
+
+    % Braces
+    \draw [decorate, decoration={brace, amplitude=10pt, mirror}] (-5.5,-4.5) -- (5.5,-4.5) node[midway, below, yshift=-0.4cm] {\footnotesize Parallel Execution with $t$ Threads};
+
+    % Add parallelization level annotations
+    \node[align=left, font=\scriptsize] at (-7,-2) {Function-\\Level\\Parallelism};
+    \node[align=left, font=\scriptsize] at (-7,-4) {Thread-\\Level\\Parallelism};
+
+  \end{tikzpicture}
   \caption{Hierarchical parallelization architecture for SLH-DSA optimization. The kernel function $g$ undergoes thread-level parallelization where individual function instances $g_{(\cdot,\cdot)_i}$ are distributed across $t$ dynamically allocated threads based on workload characteristics and available system resources.}
   \label{fig:optimization_architecture}
-\end{figure}
+\end{figure*}
 
 \subsection{Adaptive Thread Allocation}
 
@@ -237,42 +292,42 @@ This architecture dynamically balances parallelism against synchronization overh
 
 Our implementation introduces fine-grained parallelization at the hash function level, departing from conventional approaches that treat hash functions as atomic operations. This technique reduces cryptographic operation latency by decomposing hash computations into parallel tasks distributed across multiple threads.
 
-\subsubsection{Internal State Parallelism}
+% \subsubsection{Internal State Parallelism}
 
-The approach decomposes hash function operations into concurrent tasks executed in parallel by multiple threads within a single warp. For SHA256, the internal state transformations are parallelized through three primary mechanisms:
+% The approach decomposes hash function operations into concurrent tasks executed in parallel by multiple threads within a single warp. For SHA256, the internal state transformations are parallelized through three primary mechanisms:
 
-First, state initialization is distributed across multiple threads that concurrently initialize different portions of the hash function's state array. Thread 0 handles initial state setup, while threads 0-15 cooperatively load message words in parallel, significantly reducing initialization latency.
+% First, state initialization is distributed across multiple threads that concurrently initialize different portions of the hash function's state array. Thread 0 handles initial state setup, while threads 0-15 cooperatively load message words in parallel, significantly reducing initialization latency.
 
-Second, each round of the SHA256 permutation is decomposed into lane operations executed concurrently by different threads. Threads 0-15 process message schedule expansion, while threads 0-7 manage state variable updates during round computation.
+% Second, each round of the SHA256 permutation is decomposed into lane operations executed concurrently by different threads. Threads 0-15 process message schedule expansion, while threads 0-7 manage state variable updates during round computation.
 
-Third, warp-level primitives (\texttt{\_\_shfl\_sync()}) enable efficient data sharing without requiring expensive shared memory operations. These synchronized operations allow threads within a warp to exchange data with minimal divergence, enhancing computational throughput.
+% Third, warp-level primitives (\texttt{\_\_shfl\_sync()}) enable efficient data sharing without requiring expensive shared memory operations. These synchronized operations allow threads within a warp to exchange data with minimal divergence, enhancing computational throughput.
 
-\subsubsection{Task Distribution}
+% \subsubsection{Task Distribution}
 
-A hierarchical task allocation scheme efficiently distributes hash function operations across GPU threads:
+% A hierarchical task allocation scheme efficiently distributes hash function operations across GPU threads:
 
-\begin{algorithm}
-  \caption{Hash-Function-Level Task Distribution}
-  \begin{algorithmic}[1]
-    \REQUIRE Hash function $H$, Input data $M$, Number of threads $T$
-    \ENSURE Hash output
+% \begin{algorithm}
+%   \caption{Hash-Function-Level Task Distribution}
+%   \begin{algorithmic}[1]
+%     \REQUIRE Hash function $H$, Input data $M$, Number of threads $T$
+%     \ENSURE Hash output
 
-    \STATE Partition internal state of $H$ into $T$ segments
-    \STATE Assign each segment to a thread
-    \FORALL{rounds $r$ in hash function}
-    \STATE Each thread processes its assigned state segment
-    \STATE Synchronize threads using warp-level primitives
-    \STATE Perform cross-thread state mixing through register shuffling
-    \STATE Synchronize threads
-    \ENDFOR
-    \STATE Combine results from all threads using reduction operations
-    \RETURN Final hash output
-  \end{algorithmic}
-\end{algorithm}
+%     \STATE Partition internal state of $H$ into $T$ segments
+%     \STATE Assign each segment to a thread
+%     \FORALL{rounds $r$ in hash function}
+%     \STATE Each thread processes its assigned state segment
+%     \STATE Synchronize threads using warp-level primitives
+%     \STATE Perform cross-thread state mixing through register shuffling
+%     \STATE Synchronize threads
+%     \ENDFOR
+%     \STATE Combine results from all threads using reduction operations
+%     \RETURN Final hash output
+%   \end{algorithmic}
+% \end{algorithm}
 
-The task distribution strategy is optimized for SHA256 operations within SPHINCS\textsuperscript{+}, where hash function calls constitute over 90\% of computational workload. The implementation employs a tiered approach where at the intra-warp level, 16 threads collaborate on a single hash computation with specific state variable assignments; at the block level, multiple warps process independent hash operations concurrently; and at the grid level, optimal workload distribution is maintained with 128 blocks of 256 threads per block.
+% The task distribution strategy is optimized for SHA256 operations within SPHINCS\textsuperscript{+}, where hash function calls constitute over 90\% of computational workload. The implementation employs a tiered approach where at the intra-warp level, 16 threads collaborate on a single hash computation with specific state variable assignments; at the block level, multiple warps process independent hash operations concurrently; and at the grid level, optimal workload distribution is maintained with 128 blocks of 256 threads per block.
 
-For WOTS+ chain computations, which constitute approximately 70\% of the signature generation workload, this task distribution achieves a 5.3x speedup compared to conventional single-thread-per-hash implementations.
+% For WOTS+ chain computations, which constitute approximately 70\% of the signature generation workload, this task distribution achieves a 5.3x speedup compared to conventional single-thread-per-hash implementations.
 
 \section{Performance Evaluation}\label{sec:evaluation}
 
