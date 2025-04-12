@@ -29,7 +29,7 @@
 \newtheorem{proposition}{Proposition}
 \usepackage{listings}
 \usepackage{tikz}
-\usetikzlibrary{shapes,arrows,positioning,calc,shadows,decorations.pathreplacing}
+\usetikzlibrary{shapes,arrows,positioning,calc,shadows,decorations.pathreplacing,fit}
 \usepackage{multirow}
 
 %=============Suggested================
@@ -180,62 +180,174 @@ This section presents a novel optimization framework for SLH-DSA that employs a 
   \centering
   \begin{tikzpicture}[
       scale=0.9,
-      box/.style={draw, rounded corners=2pt, minimum width=2.5cm, minimum height=1.2cm, align=center, font=\small, fill=gray!5},
-      thread/.style={draw, rounded corners=2pt, minimum width=1.5cm, minimum height=0.7cm, font=\footnotesize, align=center, fill=blue!5},
+      layer/.style={draw, rounded corners=3pt, dashed, thick, fill=gray!5},
+      box/.style={draw, rounded corners=2pt, minimum width=2.5cm, minimum height=1.2cm, align=center, font=\small, fill=white},
+      component/.style={draw, rounded corners=2pt, minimum width=2cm, minimum height=1cm, align=center, font=\small, fill=blue!5},
+      thread/.style={draw, rounded corners=2pt, minimum width=1.4cm, minimum height=0.7cm, font=\footnotesize, align=center, fill=green!5},
+      operation/.style={draw, rounded corners=2pt, minimum width=1.2cm, minimum height=0.6cm, font=\footnotesize, align=center, fill=orange!5},
+      gpu/.style={draw, rounded corners=2pt, minimum width=1.1cm, minimum height=0.5cm, font=\scriptsize, align=center, fill=red!5},
       arrow/.style={->, >=stealth, thick},
-      larrow/.style={->, >=stealth, thick, dashed},
-      darrow/.style={->, >=stealth, thick, dashed, draw=gray!60},
-      function/.style={font=\small}
+      darrow/.style={->, >=stealth, thick, dashed, draw=gray!60}
     ]
 
-    % Main kernel function
-    \node[box] (g) at (0,0) {Kernel Function\\$g(\cdot,\cdot)$};
+    % Layer boxes - drawn first so they appear behind other elements
+    \node[layer, fit={($(0,1.5)+(0,0.9)$) ($(0,1.5)+(-7,-1.8)$) ($(0,1.5)+(7,-1.8)$)}] (layer1) {};
+    \node[layer, fit={($(0,-0.8)+(0,0.9)$) ($(0,-0.8)+(-7,-1.8)$) ($(0,-0.8)+(7,-1.8)$)}] (layer2) {};
+    \node[layer, fit={($(0,-3.1)+(0,0.9)$) ($(0,-3.1)+(-7,-1.8)$) ($(0,-3.1)+(7,-1.8)$)}] (layer3) {};
+    \node[layer, fit={($(0,-5.4)+(0,0.9)$) ($(0,-5.4)+(-7,-1.8)$) ($(0,-5.4)+(7,-1.8)$)}] (layer4) {};
 
-    % Function instances
-    \node[box] (g1) at (-4,-2) {Function Instance\\$g_{(\cdot,\cdot)_1}$};
-    \node[box] (g2) at (0,-2) {Function Instance\\$g_{(\cdot,\cdot)_2}$};
-    \node[box] (g3) at (4,-2) {Function Instance\\$g_{(\cdot,\cdot)_n}$};
+    % Layer labels (left side)
+    \node[align=center, font=\small, anchor=east] at (layer1.west) {Signature\\Components};
+    \node[align=center, font=\small, anchor=east] at (layer2.west) {Adaptive Thread\\Allocation (ATA)};
+    \node[align=center, font=\small, anchor=east] at (layer3.west) {Function-Level\\Parallelism (FLP)};
+    \node[align=center, font=\small, anchor=east] at (layer4.west) {GPU Thread\\Level};
 
-    % Thread allocation
-    \node[thread] (t1a) at (-5,-4) {Thread 1};
-    \node[thread] (t1b) at (-3,-4) {Thread 2};
-    \node[thread] (t2a) at (-1,-4) {Thread $k$};
-    \node[thread] (t2b) at (1,-4) {Thread $k$+1};
-    \node[thread] (t3a) at (3,-4) {Thread $t$-1};
-    \node[thread] (t3b) at (5,-4) {Thread $t$};
+    % Top layer - Signature components (moved to top level)
+    \node[component] (comp1) at (-4,2.2) {Sign\\Component};
+    \node[component] (comp2) at (0,2.2) {Verify\\Component};
+    \node[component] (comp3) at (4,2.2) {KeyPair\\Component};
+
+    % Second layer - ATA (connections adjusted)
+    \node[box] (ata1) at (-4,-0.8) {Thread Allocation};
+    \node[box] (ata2) at (0,-0.8) {Thread Allocation};
+    \node[box] (ata3) at (4,-0.8) {Thread Allocation};
+
+    % Connections from components to ATA
+    \draw[arrow] (comp1) -- (-4,1) -- (ata1);
+    \draw[arrow] (comp2) -- (0,1) -- (ata2);
+    \draw[arrow] (comp3) -- (4,1) -- (ata3);
+
+    % Third layer - FLP
+    \node[thread] (t1a) at (-5.5,-3) {Thread 1};
+    \node[thread] (t1b) at (-4,-3) {Thread 2};
+    \node[thread] (t1c) at (-2.5,-3) {Thread $k_1$};
+
+    \node[thread] (t2a) at (-0.5,-3) {Thread 1};
+    \node[thread] (t2b) at (1,-3) {Thread $k_2$};
+
+    \node[thread] (t3a) at (3,-3) {Thread 1};
+    \node[thread] (t3b) at (4.5,-3) {Thread 2};
+    \node[thread] (t3c) at (6,-3) {Thread $k_3$};
+
+    % Fourth layer - GPU thread level
+    \node[operation] (op1) at (-5.5,-4.2) {Hash Op};
+    \node[operation] (op2) at (-4,-4.2) {Hash Op};
+    \node[operation] (op3) at (-2.5,-4.2) {Hash Op};
+
+    \node[operation] (op4) at (-0.5,-4.2) {Hash Op};
+    \node[operation] (op5) at (1,-4.2) {Hash Op};
+
+    \node[operation] (op6) at (3,-4.2) {Hash Op};
+    \node[operation] (op7) at (4.5,-4.2) {Hash Op};
+    \node[operation] (op8) at (6,-4.2) {Hash Op};
+
+    % GPU thread execution units
+    \node[gpu] (gpu1) at (-5.5,-5.4) {Warp 1};
+    \node[gpu] (gpu2) at (-4.7,-5.4) {Warp 2};
+    \node[gpu] (gpu3) at (-3.8,-5.4) {Warp 3};
+    \node[gpu] (gpu4) at (-2.9,-5.4) {Warp 4};
+    \node[gpu] (gpu5) at (-2.1,-5.4) {Warp 5};
+
+    \node[gpu] (gpu6) at (-0.5,-5.4) {Warp 1};
+    \node[gpu] (gpu7) at (0.3,-5.4) {Warp 2};
+    \node[gpu] (gpu8) at (1.1,-5.4) {Warp 3};
+
+    \node[gpu] (gpu9) at (3,-5.4) {Warp 1};
+    \node[gpu] (gpu10) at (3.8,-5.4) {Warp 2};
+    \node[gpu] (gpu11) at (4.6,-5.4) {Warp 3};
+    \node[gpu] (gpu12) at (5.4,-5.4) {Warp 4};
+    \node[gpu] (gpu13) at (6.2,-5.4) {Warp 5};
+
+    % Block execution model
+    \node[gpu] (gpub1) at (-5.5,-6.1) {Block 1};
+    \node[gpu] (gpub2) at (-3.8,-6.1) {Block 2};
+    \node[gpu] (gpub3) at (-2.1,-6.1) {Block 3};
+
+    \node[gpu] (gpub4) at (-0.5,-6.1) {Block 1};
+    \node[gpu] (gpub5) at (1.1,-6.1) {Block 2};
+
+    \node[gpu] (gpub6) at (3,-6.1) {Block 1};
+    \node[gpu] (gpub7) at (4.6,-6.1) {Block 2};
+    \node[gpu] (gpub8) at (6.2,-6.1) {Block 3};
 
     % Connections
-    \draw[arrow] (g) -- (g1) node[midway, left, function, xshift=-0.2cm] {Decomposition};
-    \draw[arrow] (g) -- (g2);
-    \draw[arrow] (g) -- (g3);
+    % Remove arrows that reference undefined nodes (task1, task2, task3)
+    % \draw[arrow] (task1) -- (-4,1.6) -- (comp1);
+    % \draw[arrow] (task2) -- (comp2);
+    % \draw[arrow] (task3) -- (4,1.6) -- (comp3);
 
-    \draw[arrow] (g1) -- (t1a);
-    \draw[arrow] (g1) -- (t1b);
+    \draw[arrow] (comp1) -- (ata1);
+    \draw[arrow] (comp2) -- (ata2);
+    \draw[arrow] (comp3) -- (ata3);
 
-    \draw[arrow] (g2) -- (t2a);
-    \draw[arrow] (g2) -- (t2b);
+    \draw[arrow] (ata1) -- (-5.5,-2) -- (t1a);
+    \draw[arrow] (ata1) -- (-4,-2) -- (t1b);
+    \draw[arrow] (ata1) -- (-2.5,-2) -- (t1c);
 
-    \draw[arrow] (g3) -- (t3a);
-    \draw[arrow] (g3) -- (t3b);
+    \draw[arrow] (ata2) -- (-0.5,-2) -- (t2a);
+    \draw[arrow] (ata2) -- (1,-2) -- (t2b);
 
-    % Ellipses
-    \node at (2,-2) {$\cdots$};
-    \node at (-4,-4) {$\cdots$};
-    \node at (0,-4) {$\cdots$};
-    \node at (4,-4) {$\cdots$};
+    \draw[arrow] (ata3) -- (3,-2) -- (t3a);
+    \draw[arrow] (ata3) -- (4.5,-2) -- (t3b);
+    \draw[arrow] (ata3) -- (6,-2) -- (t3c);
 
-    % Dynamic allocation annotation
-    \draw[darrow, bend left=20] (3,0.5) to node[above, text width=4cm, align=center, font=\footnotesize] {Dynamic Thread Allocation Based on Workload} (5,-3.5);
+    % Thread to operation connections
+    \draw[arrow] (t1a) -- (op1);
+    \draw[arrow] (t1b) -- (op2);
+    \draw[arrow] (t1c) -- (op3);
 
-    % Braces
-    \draw [decorate, decoration={brace, amplitude=10pt, mirror}] (-5.5,-4.5) -- (5.5,-4.5) node[midway, below, yshift=-0.4cm] {\footnotesize Parallel Execution with $t$ Threads};
+    \draw[arrow] (t2a) -- (op4);
+    \draw[arrow] (t2b) -- (op5);
 
-    % Add parallelization level annotations
-    \node[align=left, font=\scriptsize] at (-7,-2) {Function-\\Level\\Parallelism};
-    \node[align=left, font=\scriptsize] at (-7,-4) {Thread-\\Level\\Parallelism};
+    \draw[arrow] (t3a) -- (op6);
+    \draw[arrow] (t3b) -- (op7);
+    \draw[arrow] (t3c) -- (op8);
+
+    % Operations to GPU thread level connections
+    \draw[arrow] (op1) -- (gpu1);
+    \draw[arrow] (op1) -- (gpu2);
+    \draw[arrow] (op2) -- (gpu3);
+    \draw[arrow] (op3) -- (gpu4);
+    \draw[arrow] (op3) -- (gpu5);
+
+    \draw[arrow] (op4) -- (gpu6);
+    \draw[arrow] (op4) -- (gpu7);
+    \draw[arrow] (op5) -- (gpu8);
+
+    \draw[arrow] (op6) -- (gpu9);
+    \draw[arrow] (op6) -- (gpu10);
+    \draw[arrow] (op7) -- (gpu11);
+    \draw[arrow] (op8) -- (gpu12);
+    \draw[arrow] (op8) -- (gpu13);
+
+    % Warp to block connections
+    \draw[arrow] (gpu1) -- (gpub1);
+    \draw[arrow] (gpu2) -- (gpub1);
+    \draw[arrow] (gpu3) -- (gpub2);
+    \draw[arrow] (gpu4) -- (gpub2);
+    \draw[arrow] (gpu5) -- (gpub3);
+
+    \draw[arrow] (gpu6) -- (gpub4);
+    \draw[arrow] (gpu7) -- (gpub4);
+    \draw[arrow] (gpu8) -- (gpub5);
+
+    \draw[arrow] (gpu9) -- (gpub6);
+    \draw[arrow] (gpu10) -- (gpub6);
+    \draw[arrow] (gpu11) -- (gpub7);
+    \draw[arrow] (gpu12) -- (gpub8);
+    \draw[arrow] (gpu13) -- (gpub8);
+
+    % Ellipses for indicating more components
+    \node at (-4,-3) {$\cdots$};
+    \node at (0.2,-3) {$\cdots$};
+    \node at (4.5,-3) {$\cdots$};
+
+    \node at (-4,-5.4) {$\cdots$};
+    \node at (0.2,-5.4) {$\cdots$};
+    \node at (4.5,-5.4) {$\cdots$};
 
   \end{tikzpicture}
-  \caption{Hierarchical parallelization architecture for SLH-DSA optimization. The kernel function $g$ undergoes thread-level parallelization where individual function instances $g_{(\cdot,\cdot)_i}$ are distributed across $t$ dynamically allocated threads based on workload characteristics and available system resources.}
+  \caption{Four-layer hierarchical parallelization architecture for SLH-DSA optimization. The top layer decomposes the signature task into primary operations (Sign, Verify, KeyPair); the second layer applies Adaptive Thread Allocation (ATA) to determine optimal thread count for each operation; the third layer implements Function-Level Parallelism (FLP) to parallelize internal hash operations; and the bottom layer represents GPU hardware execution with warps organized into thread blocks for efficient execution.}
   \label{fig:optimization_architecture}
 \end{figure*}
 
@@ -507,20 +619,6 @@ Table~\ref{tab:scalability} demonstrates superior performance of the optimized i
 % \end{IEEEbiography}
 
 % \begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{./fig/boss.png}}]{Lang Li}
-%   received his Ph.D. and Master's degrees in computer science from Hunan University, Changsha, China, in 2010 and 2006, respectively, and earned his B.S. degree in circuits and systems from Hunan Normal University in 1996. Since 2011, he has been working as a professor in the College of Computer Science and Technology at the Hengyang Normal University, Hengyang, China. He has research interests in embedded system and information security.
-% \end{IEEEbiography}
-
-% \vspace{11pt}
-
-% \bf{If you will not include a photo:}\vspace{-33pt}
-% \begin{IEEEbiographynophoto}{Jiahao Xiang}
-% is pursuing a Master's degree in Electronic Information at Hengyang Normal University, China. His research focuses on cryptographic engineering and efficient implementations of block ciphers on resource-constrained devices. Publications include works on lightweight cryptography optimization and contributions to open-source cryptographic projects.
-% \end{IEEEbiographynophoto}
-
-% \begin{IEEEbiographynophoto}{Lang Li}
-%  received his Ph.D. and Master's degrees in computer science from Hunan University, Changsha, China, in 2010 and 2006, respectively, and earned his B.S. degree in circuits and systems from Hunan Normal University in 1996. Since 2011, he has been working as a professor in the College of Computer Science and Technology at the Hengyang Normal University, Hengyang, China. He has research interests in embedded system and information security.
-% \end{IEEEbiographynophoto}
-
-\vfill
+%   received his Ph.D. and Master's degrees in computer science from Hunan University, Changsha, China, in 2010 and
 
 \end{document}
