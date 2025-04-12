@@ -179,175 +179,79 @@ This section presents a novel optimization framework for SLH-DSA that employs a 
 \begin{figure*}[htbp]
   \centering
   \begin{tikzpicture}[
-      scale=0.9,
-      layer/.style={draw, rounded corners=3pt, dashed, thick, fill=gray!5},
-      box/.style={draw, rounded corners=2pt, minimum width=2.5cm, minimum height=1.2cm, align=center, font=\small, fill=white},
-      component/.style={draw, rounded corners=2pt, minimum width=2cm, minimum height=1cm, align=center, font=\small, fill=blue!5},
-      thread/.style={draw, rounded corners=2pt, minimum width=1.4cm, minimum height=0.7cm, font=\footnotesize, align=center, fill=green!5},
-      operation/.style={draw, rounded corners=2pt, minimum width=1.2cm, minimum height=0.6cm, font=\footnotesize, align=center, fill=orange!5},
+      % Define styles with better semantic meaning
+      layer/.style={draw, rounded corners=3pt, dashed, thick, fill=gray!5, minimum width=14cm, minimum height=2.5cm},
+      task/.style={draw, rounded corners=2pt, minimum width=2.2cm, minimum height=1.2cm, align=center, font=\small, fill=purple!5},
+      selected/.style={task, fill=purple!20, ultra thick},
+      component/.style={draw, rounded corners=2pt, minimum width=2.5cm, minimum height=1.2cm, align=center, font=\small, fill=blue!5},
       gpu/.style={draw, rounded corners=2pt, minimum width=1.1cm, minimum height=0.5cm, font=\scriptsize, align=center, fill=red!5},
       arrow/.style={->, >=stealth, thick},
-      darrow/.style={->, >=stealth, thick, dashed, draw=gray!60}
+      manyarrows/.style={->, >=stealth, thick, draw=gray!70},
+      highlightarrow/.style={->, >=stealth, thick, draw=purple!60, dashed},
+      highlightbox/.style={draw, rounded corners=2pt, dashed, thick, draw=purple!60, fit=#1}
     ]
 
-    % Layer boxes - drawn first so they appear behind other elements
-    \node[layer, fit={($(0,1.5)+(0,0.9)$) ($(0,1.5)+(-7,-1.8)$) ($(0,1.5)+(7,-1.8)$)}] (layer1) {};
-    \node[layer, fit={($(0,-0.8)+(0,0.9)$) ($(0,-0.8)+(-7,-1.8)$) ($(0,-0.8)+(7,-1.8)$)}] (layer2) {};
-    \node[layer, fit={($(0,-3.1)+(0,0.9)$) ($(0,-3.1)+(-7,-1.8)$) ($(0,-3.1)+(7,-1.8)$)}] (layer3) {};
-    \node[layer, fit={($(0,-5.4)+(0,0.9)$) ($(0,-5.4)+(-7,-1.8)$) ($(0,-5.4)+(7,-1.8)$)}] (layer4) {};
+    % Layer boxes with vertical stacking
+    \node[layer, anchor=north, minimum width=14cm, minimum height=3cm] (layer1) at (0,4.5) {};
+    \node[layer, anchor=north, minimum width=14cm, minimum height=2cm] (layer2) at (0,1.0) {};
+    \node[layer, anchor=north] (layer3) at (0,-1.5) {};
 
-    % Layer labels (left side)
-    \node[align=center, font=\small, anchor=east] at (layer1.west) {Signature\\Components};
-    \node[align=center, font=\small, anchor=east] at (layer2.west) {Adaptive Thread\\Allocation (ATA)};
-    \node[align=center, font=\small, anchor=east] at (layer3.west) {Function-Level\\Parallelism (FLP)};
-    \node[align=center, font=\small, anchor=east] at (layer4.west) {GPU Thread\\Level};
+    % Layer labels - positioned relative to each layer
+    \node[align=center, font=\small, anchor=west] at ($(layer1.west) + (-2.5,0)$) {Cryptographic\\Operations};
+    \node[align=center, font=\small, anchor=west] at ($(layer2.west) + (-2.5,0)$) {Parallel\\Instances\\with ATA};
+    \node[align=center, font=\small, anchor=west] at ($(layer3.west) + (-2.5,0)$) {Component\\Splitting\\(FLP)};
 
-    % Top layer - Signature components (moved to top level)
-    \node[component] (comp1) at (-4,2.2) {Sign\\Component};
-    \node[component] (comp2) at (0,2.2) {Verify\\Component};
-    \node[component] (comp3) at (4,2.2) {KeyPair\\Component};
+    % Signature tasks with horizontal positioning in top layer
+    \node[task] (keygen) at ($(layer1.center) + (-5,0.7)$) {KeyGen};
+    \node[selected] (sign) at ($(layer1.center) + (0,0.7)$) {Sign};
+    \node[task] (verify) at ($(layer1.center) + (5,0.7)$) {Verify};
 
-    % Second layer - ATA (connections adjusted)
-    \node[box] (ata1) at (-4,-0.8) {Thread Allocation};
-    \node[box] (ata2) at (0,-0.8) {Thread Allocation};
-    \node[box] (ata3) at (4,-0.8) {Thread Allocation};
+    % Task queue - positioned relative to the layer
+    \node[draw, rounded corners=2pt, fill=gray!10, minimum width=12cm, minimum height=0.8cm]
+    (queue) at ($(layer1.south) + (0,0.7)$) {$n$ Task Signatures};
 
-    % Connections from components to ATA
-    \draw[arrow] (comp1) -- (-4,1) -- (ata1);
-    \draw[arrow] (comp2) -- (0,1) -- (ata2);
-    \draw[arrow] (comp3) -- (4,1) -- (ata3);
+    % Connect tasks to queue using relative positioning
+    \foreach \op/\pos in {keygen/-5, sign/0, verify/5} {
+      \draw[arrow] (\op) -- ++(0,-0.8) -| ($(queue.north) + (\pos/2,0)$);
+    }
 
-    % Third layer - FLP
-    \node[thread] (t1a) at (-5.5,-3) {Thread 1};
-    \node[thread] (t1b) at (-4,-3) {Thread 2};
-    \node[thread] (t1c) at (-2.5,-3) {Thread $k_1$};
+    % Highlight the selected task path
+    \draw[arrow, ultra thick, draw=purple!50] (sign) -- ++(0,-0.8) -| (queue);
 
-    \node[thread] (t2a) at (-0.5,-3) {Thread 1};
-    \node[thread] (t2b) at (1,-3) {Thread $k_2$};
+    % Changed to dashed line for middle arrow
+    \draw[ultra thick, draw=purple!50, dashed] (layer1.south) -- ($(layer2.north) + (0,0)$);
 
-    \node[thread] (t3a) at (3,-3) {Thread 1};
-    \node[thread] (t3b) at (4.5,-3) {Thread 2};
-    \node[thread] (t3c) at (6,-3) {Thread $k_3$};
+    % Label for instances - positioned relative to the connection
+    \node[font=\small] at ($(layer2.north) + (0,-0.3)$) {$t$ parallel instances};
 
-    % Fourth layer - GPU thread level
-    \node[operation] (op1) at (-5.5,-4.2) {Hash Op};
-    \node[operation] (op2) at (-4,-4.2) {Hash Op};
-    \node[operation] (op3) at (-2.5,-4.2) {Hash Op};
+    % Multiple instances of sign task - positioned relative to middle layer
+    \foreach \i/\pos in {1/-5,2/-2.5,3/2.5} {
+      \node[task, fill=purple!20] (sign\i) at ($(layer2.center) + (\pos,0)$) {Sign$_{\i}$};
+    }
+    \node[task, fill=purple!20] (signt) at ($(layer2.center) + (5,0)$) {Sign$_{t}$};
 
-    \node[operation] (op4) at (-0.5,-4.2) {Hash Op};
-    \node[operation] (op5) at (1,-4.2) {Hash Op};
+    \node at ($(layer2.center) + (0,0)$) {$\ldots \ldots$};
 
-    \node[operation] (op6) at (3,-4.2) {Hash Op};
-    \node[operation] (op7) at (4.5,-4.2) {Hash Op};
-    \node[operation] (op8) at (6,-4.2) {Hash Op};
+    % Component splitting - positioned relative to bottom layer
+    \node[component] (fors) at ($(layer3.center) + (-4,0.3)$) {FORS};
+    \node[component] (wots) at ($(layer3.center) + (0,0.3)$) {WOTS\textsuperscript{+}};
+    \node[component] (hypertree) at ($(layer3.center) + (4,0.3)$) {Hypertree};
 
-    % GPU thread execution units
-    \node[gpu] (gpu1) at (-5.5,-5.4) {Warp 1};
-    \node[gpu] (gpu2) at (-4.7,-5.4) {Warp 2};
-    \node[gpu] (gpu3) at (-3.8,-5.4) {Warp 3};
-    \node[gpu] (gpu4) at (-2.9,-5.4) {Warp 4};
-    \node[gpu] (gpu5) at (-2.1,-5.4) {Warp 5};
+    % Highlight Sign1 expanding to FLP layer
+    \node[highlightbox={(fors) (wots) (hypertree)}] (flpbox) {};
+    \draw[manyarrows, ultra thick] (sign1.south) -- ($(layer2.south)!0.5!(layer3.north) + (-5,0)$) --
+    ($(layer2.south)!0.5!(layer3.north) + (0,0)$) -- (flpbox.north);
 
-    \node[gpu] (gpu6) at (-0.5,-5.4) {Warp 1};
-    \node[gpu] (gpu7) at (0.3,-5.4) {Warp 2};
-    \node[gpu] (gpu8) at (1.1,-5.4) {Warp 3};
-
-    \node[gpu] (gpu9) at (3,-5.4) {Warp 1};
-    \node[gpu] (gpu10) at (3.8,-5.4) {Warp 2};
-    \node[gpu] (gpu11) at (4.6,-5.4) {Warp 3};
-    \node[gpu] (gpu12) at (5.4,-5.4) {Warp 4};
-    \node[gpu] (gpu13) at (6.2,-5.4) {Warp 5};
-
-    % Block execution model
-    \node[gpu] (gpub1) at (-5.5,-6.1) {Block 1};
-    \node[gpu] (gpub2) at (-3.8,-6.1) {Block 2};
-    \node[gpu] (gpub3) at (-2.1,-6.1) {Block 3};
-
-    \node[gpu] (gpub4) at (-0.5,-6.1) {Block 1};
-    \node[gpu] (gpub5) at (1.1,-6.1) {Block 2};
-
-    \node[gpu] (gpub6) at (3,-6.1) {Block 1};
-    \node[gpu] (gpub7) at (4.6,-6.1) {Block 2};
-    \node[gpu] (gpub8) at (6.2,-6.1) {Block 3};
-
-    % Connections
-    % Remove arrows that reference undefined nodes (task1, task2, task3)
-    % \draw[arrow] (task1) -- (-4,1.6) -- (comp1);
-    % \draw[arrow] (task2) -- (comp2);
-    % \draw[arrow] (task3) -- (4,1.6) -- (comp3);
-
-    \draw[arrow] (comp1) -- (ata1);
-    \draw[arrow] (comp2) -- (ata2);
-    \draw[arrow] (comp3) -- (ata3);
-
-    \draw[arrow] (ata1) -- (-5.5,-2) -- (t1a);
-    \draw[arrow] (ata1) -- (-4,-2) -- (t1b);
-    \draw[arrow] (ata1) -- (-2.5,-2) -- (t1c);
-
-    \draw[arrow] (ata2) -- (-0.5,-2) -- (t2a);
-    \draw[arrow] (ata2) -- (1,-2) -- (t2b);
-
-    \draw[arrow] (ata3) -- (3,-2) -- (t3a);
-    \draw[arrow] (ata3) -- (4.5,-2) -- (t3b);
-    \draw[arrow] (ata3) -- (6,-2) -- (t3c);
-
-    % Thread to operation connections
-    \draw[arrow] (t1a) -- (op1);
-    \draw[arrow] (t1b) -- (op2);
-    \draw[arrow] (t1c) -- (op3);
-
-    \draw[arrow] (t2a) -- (op4);
-    \draw[arrow] (t2b) -- (op5);
-
-    \draw[arrow] (t3a) -- (op6);
-    \draw[arrow] (t3b) -- (op7);
-    \draw[arrow] (t3c) -- (op8);
-
-    % Operations to GPU thread level connections
-    \draw[arrow] (op1) -- (gpu1);
-    \draw[arrow] (op1) -- (gpu2);
-    \draw[arrow] (op2) -- (gpu3);
-    \draw[arrow] (op3) -- (gpu4);
-    \draw[arrow] (op3) -- (gpu5);
-
-    \draw[arrow] (op4) -- (gpu6);
-    \draw[arrow] (op4) -- (gpu7);
-    \draw[arrow] (op5) -- (gpu8);
-
-    \draw[arrow] (op6) -- (gpu9);
-    \draw[arrow] (op6) -- (gpu10);
-    \draw[arrow] (op7) -- (gpu11);
-    \draw[arrow] (op8) -- (gpu12);
-    \draw[arrow] (op8) -- (gpu13);
-
-    % Warp to block connections
-    \draw[arrow] (gpu1) -- (gpub1);
-    \draw[arrow] (gpu2) -- (gpub1);
-    \draw[arrow] (gpu3) -- (gpub2);
-    \draw[arrow] (gpu4) -- (gpub2);
-    \draw[arrow] (gpu5) -- (gpub3);
-
-    \draw[arrow] (gpu6) -- (gpub4);
-    \draw[arrow] (gpu7) -- (gpub4);
-    \draw[arrow] (gpu8) -- (gpub5);
-
-    \draw[arrow] (gpu9) -- (gpub6);
-    \draw[arrow] (gpu10) -- (gpub6);
-    \draw[arrow] (gpu11) -- (gpub7);
-    \draw[arrow] (gpu12) -- (gpub8);
-    \draw[arrow] (gpu13) -- (gpub8);
-
-    % Ellipses for indicating more components
-    \node at (-4,-3) {$\cdots$};
-    \node at (0.2,-3) {$\cdots$};
-    \node at (4.5,-3) {$\cdots$};
-
-    \node at (-4,-5.4) {$\cdots$};
-    \node at (0.2,-5.4) {$\cdots$};
-    \node at (4.5,-5.4) {$\cdots$};
+    % GPU Blocks - positioned relative to components
+    \foreach \comp/\name/\pos in {fors/FORS/-4, wots/WOTS/0, hypertree/Hypertree/4} {
+      \foreach \shift in {-1, 0, 1} {
+        \node[gpu] (gpu\name\shift) at ($(\comp.south) + (\shift,-0.6)$) {GPU warp};
+        \draw[arrow] ($(\comp.south) + (\shift,-0.0)$) -- (gpu\name\shift);
+      }
+    }
 
   \end{tikzpicture}
-  \caption{Four-layer hierarchical parallelization architecture for SLH-DSA optimization. The top layer decomposes the signature task into primary operations (Sign, Verify, KeyPair); the second layer applies Adaptive Thread Allocation (ATA) to determine optimal thread count for each operation; the third layer implements Function-Level Parallelism (FLP) to parallelize internal hash operations; and the bottom layer represents GPU hardware execution with warps organized into thread blocks for efficient execution.}
+  \caption{Thread-adaptive parallelization architecture for SLH-DSA. The architecture comprises three hierarchical layers: the top layer represents cryptographic operations (with Sign highlighted); the middle layer implements Adaptive Thread Allocation (ATA) with dynamically optimized thread configurations distributed across $t$ parallel instances; the bottom layer employs Function-Level Parallelism (FLP) by decomposing operations into algorithmic components (FORS, WOTS\textsuperscript{+}, and Hypertree). Each component distributes computation across multiple GPU warps, with each warp containing 32 threads as the fundamental execution unit.}
   \label{fig:optimization_architecture}
 \end{figure*}
 
