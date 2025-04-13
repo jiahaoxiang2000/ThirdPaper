@@ -200,7 +200,7 @@ This section presents a novel optimization framework for SLH-DSA that employs a 
     % Layer labels - positioned relative to each layer
     \node[align=center, font=\small, anchor=west] at ($(layer1.west) + (-2.5,0)$) {Cryptographic\\Operations};
     \node[align=center, font=\small, anchor=west] at ($(layer2.west) + (-2.5,0)$) {Parallel\\Instances\\with ATA};
-    \node[align=center, font=\small, anchor=west] at ($(layer3.west) + (-2.5,0)$) {Component\\Splitting\\(FLP)};
+    \node[align=center, font=\small, anchor=west] at ($(layer3.west) + (-2.5,0)$) {Component\\Splitting\\FLP};
 
     % Signature tasks with horizontal positioning in top layer
     \node[task] (keygen) at ($(layer1.center) + (-5,0.7)$) {KeyGen};
@@ -310,42 +310,9 @@ This architecture dynamically balances parallelism against synchronization overh
 
 Our implementation introduces fine-grained parallelization at the hash function level, departing from conventional approaches that treat hash functions as atomic operations. This technique reduces cryptographic operation latency by decomposing hash computations into parallel tasks distributed across multiple threads.
 
-% \subsubsection{Internal State Parallelism}
-
-% The approach decomposes hash function operations into concurrent tasks executed in parallel by multiple threads within a single warp. For SHA256, the internal state transformations are parallelized through three primary mechanisms:
-
-% First, state initialization is distributed across multiple threads that concurrently initialize different portions of the hash function's state array. Thread 0 handles initial state setup, while threads 0-15 cooperatively load message words in parallel, significantly reducing initialization latency.
-
-% Second, each round of the SHA256 permutation is decomposed into lane operations executed concurrently by different threads. Threads 0-15 process message schedule expansion, while threads 0-7 manage state variable updates during round computation.
-
-% Third, warp-level primitives (\texttt{\_\_shfl\_sync()}) enable efficient data sharing without requiring expensive shared memory operations. These synchronized operations allow threads within a warp to exchange data with minimal divergence, enhancing computational throughput.
-
-% \subsubsection{Task Distribution}
-
-% A hierarchical task allocation scheme efficiently distributes hash function operations across GPU threads:
-
-% \begin{algorithm}
-%   \caption{Hash-Function-Level Task Distribution}
-%   \begin{algorithmic}[1]
-%     \REQUIRE Hash function $H$, Input data $M$, Number of threads $T$
-%     \ENSURE Hash output
-
-%     \STATE Partition internal state of $H$ into $T$ segments
-%     \STATE Assign each segment to a thread
-%     \FORALL{rounds $r$ in hash function}
-%     \STATE Each thread processes its assigned state segment
-%     \STATE Synchronize threads using warp-level primitives
-%     \STATE Perform cross-thread state mixing through register shuffling
-%     \STATE Synchronize threads
-%     \ENDFOR
-%     \STATE Combine results from all threads using reduction operations
-%     \RETURN Final hash output
-%   \end{algorithmic}
-% \end{algorithm}
-
-% The task distribution strategy is optimized for SHA256 operations within SPHINCS\textsuperscript{+}, where hash function calls constitute over 90\% of computational workload. The implementation employs a tiered approach where at the intra-warp level, 16 threads collaborate on a single hash computation with specific state variable assignments; at the block level, multiple warps process independent hash operations concurrently; and at the grid level, optimal workload distribution is maintained with 128 blocks of 256 threads per block.
-
-% For WOTS+ chain computations, which constitute approximately 70\% of the signature generation workload, this task distribution achieves a 5.3x speedup compared to conventional single-thread-per-hash implementations.
+% dev_ap_fors_sign_12 on fors.cu ,
+% dev_ap_treehash_wots_23 on utils.cu,
+% dev_ap_ht_123 on the sign.cu
 
 \section{Performance Evaluation}\label{sec:evaluation}
 
