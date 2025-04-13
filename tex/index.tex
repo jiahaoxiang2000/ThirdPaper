@@ -65,7 +65,7 @@
   This research presents a GPU-accelerated implementation of SLH-DSA that employs a thread-adaptive parallelization methodology to maximize throughput.
   In contrast to conventional approaches utilizing fixed maximum thread allocation, the proposed implementation dynamically optimizes parallelism levels for individual cryptographic kernel functions, thereby establishing an equilibrium between thread utilization and execution efficiency.
   Furthermore, granular decomposition of signature components is implemented to enhance thread-level execution performance.
-  Performance evaluation conducted on an NVIDIA RTX 4090 GPU demonstrates that the implementation attains a throughput of XXX signatures per second, representing a significant performance improvement over existing methodologies.
+  Performance evaluation conducted on an NVIDIA RTX 4090 GPU demonstrates that the implementation attains a throughput of 62,239 signatures per second for the SPHINCS$^+$-128f parameter set, representing a significant performance improvement over existing methodologies.
   The empirical results establish GPUs as viable platforms for SLH-DSA acceleration in high-throughput environments, thus facilitating the practical transition to post-quantum cryptographic standards.
 
 \end{abstract}
@@ -105,7 +105,7 @@ This paper presents a thread-adaptive GPU-based implementation of SLH-DSA with t
 
   \item A sophisticated function-level parallelization approach that strategically decomposes cryptographic operations into independent computational tasks, significantly reducing latency and enhancing the performance of core SLH-DSA primitives.
 
-  \item Performance evaluation on NVIDIA GPU architecture demonstrating a throughput of XXX SLH-DSA signatures per second, representing substantial improvement over state-of-the-art implementations.
+  \item Performance evaluation on NVIDIA GPU architecture demonstrating a throughput of 62,239 SLH-DSA signatures per second (for SPHINCS$^+$-128f), representing substantial improvement over state-of-the-art implementations.
     The complete implementation is available as an open-source repository at \url{https://github.com/jiahaoxiang2000/sphincs-plus}.
 \end{enumerate}
 
@@ -293,7 +293,7 @@ The thread allocation optimization follows the methodology outlined in Algorithm
     \ENSURE Optimized thread configuration for each function
 
     \FOR{each function $g_i \in G$}
-    \STATE Profile $g_i$ with varying thread counts $t \in \{2^j | j \in [5, 10]\}$
+    \STATE Profile $g_i $ with varying thread counts $t \in \{2^j | j \in [5, 10]\}$
     \STATE Fit performance data to model $T(g_i, t) = \alpha_i + \frac{\beta_i}{t} + \gamma_i \cdot t$
     \STATE Calculate $t_i^* = \sqrt{\frac{\beta_i}{\gamma_i}}$
     \STATE Round $t_i^*$ to nearest power of 2 for GPU scheduler compatibility
@@ -308,23 +308,25 @@ This architecture dynamically balances parallelism against synchronization overh
 
 \subsection{Function-Level Parallelism}
 
-Our implementation introduces fine-grained parallelization at the hash function level, departing from conventional approaches that treat hash functions as atomic operations. This technique reduces cryptographic operation latency by decomposing hash computations into parallel tasks distributed across multiple threads. Specifically, the following parallelization strategies are employed:
+This implementation decomposes hash functions into parallel tasks rather than treating them as atomic operations, reducing cryptographic latency through fine-grained parallelization. The following strategies are employed:
 
 \begin{itemize}
-  \item \textbf{FORS Parallelization}: The FORS signature generation involves two primary parallelizable stages. First, the generation of $k \times 2^a$ secret key elements and corresponding leaf nodes (where $k$ is the number of trees and $a$ is the tree height) consists of independent computations distributed across available threads. Second, the construction of the $k$ Merkle trees proceeds in parallel, level by level. Threads concurrently compute intermediate hash nodes at each level and collect necessary authentication path elements. Shared memory is utilized to efficiently aggregate the $k$ tree roots before the final public key derivation hash, minimizing global memory accesses.
-  \item \textbf{WOTS$^+$ Parallelization}: The generation of a WOTS$^+$ public key requires computing $l$ independent hash chains. This process is parallelized by assigning distinct chains or segments thereof to different threads. For the hypertree structure, multiple WOTS$^+$ public keys are needed for the leaf nodes; their computation is performed concurrently. The associated kernel optimizes this by parallelizing both the initial chain generation and the subsequent hashing operations required to form the leaf nodes. Shared memory facilitates efficient construction of authentication paths, reducing reliance on slower global memory.
-  \item \textbf{Hypertree Parallelization}: The construction of the $d$-layer hypertree necessitates building multiple Merkle trees. Our implementation parallelizes the construction of these trees simultaneously across all $d$ layers. Threads are strategically assigned to compute nodes residing at the same level but belonging to different trees within the overall hypertree structure. This strategy enables the concurrent execution of WOTS$^+$ key generation, hash chain computations, leaf node hashing, and intermediate node hashing for all layers. Authentication paths for each layer are also generated and collected in parallel.
+  \item \textbf{WOTS$^+$ Parallelization}: Concurrent computation of $l$ independent hash chains by assigning chains or segments to distinct threads. For hypertree structures, multiple WOTS$^+$ public keys are generated simultaneously, with shared memory optimizing authentication path construction.
+
+  \item \textbf{FORS Parallelization}: Parallel generation of $k \times 2^a$ secret key elements and leaf nodes, followed by concurrent construction of $k$ Merkle trees. Shared memory aggregates tree roots to minimize global memory accesses during public key derivation.
+
+  \item \textbf{Hypertree Parallelization}: Concurrent construction of multiple Merkle trees across all $d$ layers. Threads compute nodes at identical levels but in different trees, enabling simultaneous execution of WOTS$^+$ key generation, hash chain computation, and node hashing operations.
 \end{itemize}
 
-These function-level parallelization techniques, integrated with memory optimization strategies such as coalesced memory access patterns and strategic use of shared memory, yield a significant reduction in the execution latency of core SLH-DSA components compared to methodologies that restrict parallelism solely to the signature task level.
+These techniques, combined with coalesced memory access patterns and strategic shared memory utilization, significantly reduce execution latency compared to signature-level parallelism approaches.
 
 \section{Performance Evaluation}\label{sec:evaluation}
 
-This section presents a comprehensive empirical analysis of the optimized SLH-DSA implementation, evaluating both the effectiveness of the proposed optimization techniques and the overall cryptographic performance characteristics across diverse computational environments.
+This section presents empirical analyses of the SLH-DSA implementation, examining optimization effectiveness and performance characteristics across computational environments.
 
 \subsection{Experimental Setup}
 
-The evaluation framework was established on multiple hardware platforms to enable comparative analysis across different computational architectures. The experimental environment comprised:
+Evaluation was conducted on standardized hardware platforms to facilitate comparative analysis. The experimental configuration comprised:
 
 \begin{table}[h]
   \centering
@@ -342,20 +344,11 @@ The evaluation framework was established on multiple hardware platforms to enabl
   \end{tabular}
 \end{table}
 
-The implementation was evaluated using the standardized NIST parameter sets for SLH-DSA at security levels 1, and 3 corresponding to 128, and 192 bits of security, respectively. Each measurement was repeated 1,000 times to ensure statistical significance, with outlier rejection using median absolute deviation techniques.
+Testing utilized standardized NIST parameter sets for SLH-DSA at security levels 1 and 3, corresponding to 128 and 192 bits of security. Each measurement was replicated 20 times, with statistical outliers removed using median absolute deviation techniques.
 
 \subsection{Thread Allocation Efficiency}
 
-The efficacy of Adaptive Thread Allocation (ATA) was evaluated by measuring execution times across varying thread configurations for core cryptographic functions. Figure \ref{fig:thread_efficiency} illustrates the relationship between thread allocation and computational performance.
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.48\textwidth]{../sphincs-plus/fig/thread_efficiency.pdf}
-  \caption{Performance variation with thread allocation for key SLH-DSA operations. Optimized thread allocations (marked) consistently approximate the empirical performance minimum, validating the model in Equation \ref{eq:optimal_thread_count}.}
-  \label{fig:thread_efficiency}
-\end{figure}
-
-Table \ref{tab:thread_model_params} presents the experimentally derived model parameters and optimal thread allocations for key SLH-DSA operations.
+ATA efficacy was evaluated through execution time measurements across varying thread configurations for core cryptographic functions. Table \ref{tab:thread_model_params} presents experimentally derived model parameters and optimal thread allocations.
 
 \begin{table}[h]
   \centering
@@ -378,32 +371,39 @@ Table \ref{tab:thread_model_params} presents the experimentally derived model pa
   \end{tabular}
 \end{table}
 
-Performance confirm that operating at non optimal thread counts introduces substantial inefficiency.
-When theoretical thread counts were rounded to the nearest power of 2 for implementation (typically 32,768), measurements showed 10-20\% performance improvements compared to standard fixed-thread approaches, empirically validating the effectiveness of the adaptive thread allocation model.
+Results confirm that non-optimal thread counts introduce significant performance degradation. Implementation with thread counts rounded to powers of 2 (typically 32,768) demonstrated 10-20\% performance improvements compared to fixed-thread approaches, validating the adaptive thread allocation model's effectiveness.
+
+\color{blue}
 
 \subsection{Function-Level Parallelism Impact}
 
-The effectiveness of the Function-Level Parallelism (FLP) technique was assessed by comparing execution times against conventional parallelization approaches. Table \ref{tab:flp_impact} presents the performance improvement achieved through FLP implementation.
+FLP effectiveness was assessed through component-level latency analysis within the signing process. Table \ref{tab:flp_impact} presents the latency distribution for SPHINCS$^+$-128f across FORS, WOTS\textsuperscript{+}, and Hypertree operations.
 
 \begin{table}[h]
   \centering
-  \caption{Performance Impact of Function-Level Parallelism}
+  \color{blue}
+  \caption{Latency Breakdown of Signing Operation (SPHINCS$^+$-128f)}
   \label{tab:flp_impact}
   \begin{tabular}{@{}lcc@{}}
     \toprule
-    \textbf{Operation} & \textbf{Speedup Factor} & \textbf{Utilization Increase} \\
+    \textbf{Component} & \textbf{Latency (ms)} & \textbf{Percentage of Total} \\
     \midrule
-    % SHA-256 Hash & 3.7$\times$ & 42.6\% \\
-    % WOTS$^+$ Chain Computation & 5.3$\times$ & 67.8\% \\
-    % Tree Construction & 4.1$\times$ & 51.4\% \\
-    % Overall Signing & 4.5$\times$ & 58.3\% \\
+    WOTS\textsuperscript{+} Sign & 1.857 & 0.35\% \\
+    FORS Sign & 29.371 & 5.58\% \\
+    Hypertree Sign & 495.252 & 94.07\% \\
+    \midrule
+    Total Sign Latency & 526.48 & 100.00\% \\
     \bottomrule
   \end{tabular}
 \end{table}
 
+Analysis indicates Hypertree construction dominates signing latency at 94.07\% of total execution time. Despite FLP optimizations of individual hash computations, inherent sequential dependencies and operation volume in the Hypertree constrain achievable parallelism compared to FORS and WOTS\textsuperscript{+} components. This highlights the necessity for targeted optimization of Hypertree structures for future performance enhancements.
+
+\color{black}
+
 \subsection{Comparative Performance Analysis}
 
-The optimized implementation was benchmarked against state-of-the-art implementations using the SPHINCS$^+$-128f parameter set. Table \ref{tab:comparative_perf} presents latency and throughput metrics for key generation (KG), signature creation (Sign), and verification (Verify) operations across implementations executed on comparable hardware platforms.
+The implementation was benchmarked against state-of-the-art alternatives using SPHINCS$^+$-128f parameters. Table \ref{tab:comparative_perf} presents latency and throughput metrics across comparable hardware platforms.
 
 \begin{table*}[t]
   \centering
@@ -426,14 +426,13 @@ The optimized implementation was benchmarked against state-of-the-art implementa
   \end{tablenotes}
 \end{table*}
 
-Performance demonstrate consistent improvements across all cryptographic operations when compared to the reimplementation of \cite{Wang2025} on identical hardware.
-Key generation latency decreased by 9.55\%, signature generation by 13.55\%, and verification by 10.03\%. These latency reductions translate to throughput increases of 10.60\%, 15.68\%, and 11.14\% respectively, with the most substantial improvements observed in signature generation operations.
+Consistent performance improvements were observed across all cryptographic operations compared to reference implementations on identical hardware. Key generation, signature generation, and verification latencies decreased by 9.55\%, 13.55\%, and 10.03\% respectively, corresponding to throughput increases of 10.60\%, 15.68\%, and 11.14\%. Signature generation operations exhibited the most substantial performance enhancements.
 
 \color{blue}
 
 \subsection{Scalability Analysis}
 
-The scalability characteristics of the optimized implementation were evaluated across varying problem sizes and security parameters. Table \ref{tab:scalability} presents execution time scaling for signature generation across different security levels.
+Implementation scalability was evaluated across varying security parameters and computational complexities. Table \ref{tab:scalability} presents execution metrics for signature generation across different parameter sets.
 
 \begin{table}[h]
   \color{blue}
@@ -443,9 +442,6 @@ The scalability characteristics of the optimized implementation were evaluated a
   \begin{tabular}{@{}lcc@{}}
     \toprule
     \textbf{Parameter Set} & \textbf{Latency (ms)} & \textbf{Throughput (tasks/sec)} \\
-    \midrule
-    SPHINCS$^+$-128f, \cite{Wang2025} & 609.03 & 53,804 \\
-    SPHINCS$^+$-128f & 526.48 & 62,239 \\
     \midrule
     SPHINCS$^+$-128s, \cite{Wang2025} & 12,185.35 & 2,689 \\
     SPHINCS$^+$-128s & 9,125.94 & 3,591 \\
@@ -459,11 +455,13 @@ The scalability characteristics of the optimized implementation were evaluated a
   \end{tabular}
 \end{table}
 
-Table~\ref{tab:scalability} demonstrates superior performance of the optimized implementation across all parameter sets, particularly for ``robust" variants. SPHINCS$^+$-128s shows the most significant gains with 25\% latency reduction and 33.5\% throughput improvement. The thread-adaptive approach proves especially effective for computationally intensive operations with smaller hash sizes. Security level impacts optimization effectiveness, with level 1 (128-bit) parameters gaining more than level 3 (192-bit) counterparts due to increased synchronization overhead at higher security levels.
-
-\color{black}
+Superior performance was observed across all parameter configurations, with notable improvements for robust variants. The SPHINCS$^+$-128s parameter set exhibited a 25\% latency reduction and 33.5\% throughput enhancement. Thread-adaptive techniques proved most effective for computationally intensive operations with smaller hash sizes. Diminishing returns were observed at higher security levels due to increased synchronization overhead, reflecting an inherent trade-off between security parameters and parallel execution efficiency.
 
 \section{Conclusion}\label{sec:conclusion}
+
+A thread-adaptive GPU implementation of SLH-DSA was developed that dynamically allocates computational resources based on cryptographic function profiles while decomposing operations into finely-grained parallel tasks. Performance evaluation on an NVIDIA RTX 4090 GPU demonstrated a throughput of 62,239 signatures per second for SPHINCS$^+$-128f parameters, representing a 15.68\% improvement over state-of-the-art implementations. Empirical analysis identified Hypertree construction as the primary performance bottleneck, accounting for 94\% of signing latency despite component-level optimizations. The implementation exhibited particular efficacy for robust parameter variants, with SPHINCS$^+$-128s showing a 25\% latency reduction and 33.5\% throughput enhancement. These results establish GPU platforms as viable acceleration frameworks for post-quantum cryptographic schemes. Future work will focus on Hypertree structure optimization and performance evaluation across diverse GPU architectures.
+
+\color{black}
 
 % \section*{Acknowledgments}
 
@@ -489,11 +487,23 @@ Table~\ref{tab:scalability} demonstrates superior performance of the optimized i
 % \newpage
 
 % % \bf{If you include a photo:}\vspace{-33pt}
-% \begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{./fig/slef.jpg}}]{Jiahao Xiang}
-%   is pursuing a Master's degree in Electronic Information at Hengyang Normal University, China. His research focuses on cryptographic engineering and efficient implementations of block ciphers on resource-constrained devices. Publications include works on lightweight cryptography optimization and contributions to open-source cryptographic projects.
-% \end{IEEEbiography}
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{./fig/slef.jpg}}]{Jiahao Xiang}
+  is pursuing a Master's degree in Electronic Information at Hengyang Normal University, China. His research focuses on cryptographic engineering and efficient implementations of block ciphers on resource-constrained devices. Publications include works on lightweight cryptography optimization and contributions to open-source cryptographic projects.
+\end{IEEEbiography}
 
-% \begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{./fig/boss.png}}]{Lang Li}
-%   received his Ph.D. and Master's degrees in computer science from Hunan University, Changsha, China, in 2010 and
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{./fig/boss.png}}]{Lang Li}
+  received his Ph.D. and Master's degrees in computer science from Hunan University, Changsha, China, in 2010 and 2006, respectively, and earned his B.S. degree in circuits and systems from Hunan Normal University in 1996. Since 2011, he has been working as a professor in the College of Computer Science and Technology at the Hengyang Normal University, Hengyang, China. He has research interests in embedded system and information security.
+\end{IEEEbiography}
+
+% \vspace{11pt}
+
+% \bf{If you will not include a photo:}\vspace{-33pt}
+% \begin{IEEEbiographynophoto}{Jiahao Xiang}
+%   is pursuing a Master's degree in Electronic Information at Hengyang Normal University, China. His research focuses on cryptographic engineering and efficient implementations of block ciphers on resource-constrained devices. Publications include works on lightweight cryptography optimization and contributions to open-source cryptographic projects.
+% \end{IEEEbiographynophoto}
+
+% \begin{IEEEbiographynophoto}{Lang Li}
+%   received his Ph.D. and Master's degrees in computer science from Hunan University, Changsha, China, in 2010 and 2006, respectively, and earned his B.S. degree in circuits and systems from Hunan Normal University in 1996. Since 2011, he has been working as a professor in the College of Computer Science and Technology at the Hengyang Normal University, Hengyang, China. He has research interests in embedded system and information security.
+% \end{IEEEbiographynophoto}
 
 \end{document}
