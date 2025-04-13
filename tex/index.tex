@@ -306,13 +306,17 @@ The thread allocation optimization follows the methodology outlined in Algorithm
 
 This architecture dynamically balances parallelism against synchronization overhead, yielding precise resource allocation tailored to each cryptographic operation. The thread configuration resides in GPU constant memory for low-latency access during execution, ensuring computational efficiency without introducing additional runtime overhead.
 
-\subsection{Function-Level Parallelization}
+\subsection{Function-Level Parallelism}
 
-Our implementation introduces fine-grained parallelization at the hash function level, departing from conventional approaches that treat hash functions as atomic operations. This technique reduces cryptographic operation latency by decomposing hash computations into parallel tasks distributed across multiple threads.
+Our implementation introduces fine-grained parallelization at the hash function level, departing from conventional approaches that treat hash functions as atomic operations. This technique reduces cryptographic operation latency by decomposing hash computations into parallel tasks distributed across multiple threads. Specifically, the following parallelization strategies are employed:
 
-% dev_ap_fors_sign_12 on fors.cu ,
-% dev_ap_treehash_wots_23 on utils.cu,
-% dev_ap_ht_123 on the sign.cu
+\begin{itemize}
+  \item \textbf{FORS Parallelization}: The FORS signature generation involves two primary parallelizable stages. First, the generation of $k \times 2^a$ secret key elements and corresponding leaf nodes (where $k$ is the number of trees and $a$ is the tree height) consists of independent computations distributed across available threads. Second, the construction of the $k$ Merkle trees proceeds in parallel, level by level. Threads concurrently compute intermediate hash nodes at each level and collect necessary authentication path elements. Shared memory is utilized to efficiently aggregate the $k$ tree roots before the final public key derivation hash, minimizing global memory accesses.
+  \item \textbf{WOTS$^+$ Parallelization}: The generation of a WOTS$^+$ public key requires computing $l$ independent hash chains. This process is parallelized by assigning distinct chains or segments thereof to different threads. For the hypertree structure, multiple WOTS$^+$ public keys are needed for the leaf nodes; their computation is performed concurrently. The associated kernel optimizes this by parallelizing both the initial chain generation and the subsequent hashing operations required to form the leaf nodes. Shared memory facilitates efficient construction of authentication paths, reducing reliance on slower global memory.
+  \item \textbf{Hypertree Parallelization}: The construction of the $d$-layer hypertree necessitates building multiple Merkle trees. Our implementation parallelizes the construction of these trees simultaneously across all $d$ layers. Threads are strategically assigned to compute nodes residing at the same level but belonging to different trees within the overall hypertree structure. This strategy enables the concurrent execution of WOTS$^+$ key generation, hash chain computations, leaf node hashing, and intermediate node hashing for all layers. Authentication paths for each layer are also generated and collected in parallel.
+\end{itemize}
+
+These function-level parallelization techniques, integrated with memory optimization strategies such as coalesced memory access patterns and strategic use of shared memory, yield a significant reduction in the execution latency of core SLH-DSA components compared to methodologies that restrict parallelism solely to the signature task level.
 
 \section{Performance Evaluation}\label{sec:evaluation}
 
@@ -390,7 +394,7 @@ The effectiveness of the Function-Level Parallelism (FLP) technique was assessed
     \textbf{Operation} & \textbf{Speedup Factor} & \textbf{Utilization Increase} \\
     \midrule
     % SHA-256 Hash & 3.7$\times$ & 42.6\% \\
-    % WOTS+ Chain Computation & 5.3$\times$ & 67.8\% \\
+    % WOTS$^+$ Chain Computation & 5.3$\times$ & 67.8\% \\
     % Tree Construction & 4.1$\times$ & 51.4\% \\
     % Overall Signing & 4.5$\times$ & 58.3\% \\
     \bottomrule
@@ -455,9 +459,7 @@ The scalability characteristics of the optimized implementation were evaluated a
   \end{tabular}
 \end{table}
 
-% TODO: the S not equiv to small, need to check.
-
-Table~\ref{tab:scalability} demonstrates superior performance of the optimized implementation across all parameter sets, particularly for ``small" variants. SPHINCS$^+$-128s shows the most significant gains with 25\% latency reduction and 33.5\% throughput improvement. The thread-adaptive approach proves especially effective for computationally intensive operations with smaller hash sizes. Security level impacts optimization effectiveness, with level 1 (128-bit) parameters gaining more than level 3 (192-bit) counterparts due to increased synchronization overhead at higher security levels.
+Table~\ref{tab:scalability} demonstrates superior performance of the optimized implementation across all parameter sets, particularly for ``robust" variants. SPHINCS$^+$-128s shows the most significant gains with 25\% latency reduction and 33.5\% throughput improvement. The thread-adaptive approach proves especially effective for computationally intensive operations with smaller hash sizes. Security level impacts optimization effectiveness, with level 1 (128-bit) parameters gaining more than level 3 (192-bit) counterparts due to increased synchronization overhead at higher security levels.
 
 \color{black}
 
