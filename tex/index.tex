@@ -252,7 +252,6 @@ This section presents a novel optimization framework for SLH-DSA that employs a 
     }
 
   \end{tikzpicture}
-  \color{blue}
   \caption{Thread-adaptive parallelization architecture for SLH-DSA. The architecture comprises three hierarchical layers: the top layer represents cryptographic operations (with Sign highlighted); the middle layer implements Adaptive Thread Allocation (ATA) with dynamically optimized thread configurations distributed across $t$ parallel instances; the bottom layer employs Function-Level Parallelism (FLP) by decomposing operations into algorithmic components (FORS, WOTS\textsuperscript{+}, and Hypertree). Each component distributes computation across multiple GPU warps, with each warp containing 32 threads as the fundamental execution unit.}
   \label{fig:optimization_architecture}
 \end{figure*}
@@ -373,15 +372,12 @@ ATA efficacy was evaluated through execution time measurements across varying th
 
 Results confirm that non-optimal thread counts introduce significant performance degradation. Implementation with thread counts rounded to powers of 2 (typically 32,768) demonstrated 10-20\% performance improvements compared to fixed-thread approaches, validating the adaptive thread allocation model's effectiveness.
 
-\color{blue}
-
 \subsection{Function-Level Parallelism Impact}
 
 FLP effectiveness was assessed through component-level latency analysis within the signing process. Table \ref{tab:flp_impact} presents the latency distribution for SPHINCS$^+$-128f across FORS, WOTS\textsuperscript{+}, and Hypertree operations.
 
 \begin{table}[h]
   \centering
-  \color{blue}
   \caption{Latency Breakdown of Signing Operation (SPHINCS$^+$-128f)}
   \label{tab:flp_impact}
   \begin{tabular}{@{}lcc@{}}
@@ -398,8 +394,6 @@ FLP effectiveness was assessed through component-level latency analysis within t
 \end{table}
 
 Analysis indicates Hypertree construction dominates signing latency at 94.07\% of total execution time. Despite FLP optimizations of individual hash computations, inherent sequential dependencies and operation volume in the Hypertree constrain achievable parallelism compared to FORS and WOTS\textsuperscript{+} components. This highlights the necessity for targeted optimization of Hypertree structures for future performance enhancements.
-
-\color{black}
 
 \subsection{Comparative Performance Analysis}
 
@@ -428,14 +422,11 @@ The implementation was benchmarked against state-of-the-art alternatives using S
 
 Consistent performance improvements were observed across all cryptographic operations compared to reference implementations on identical hardware. Key generation, signature generation, and verification latencies decreased by 9.55\%, 13.55\%, and 10.03\% respectively, corresponding to throughput increases of 10.60\%, 15.68\%, and 11.14\%. Signature generation operations exhibited the most substantial performance enhancements.
 
-\color{blue}
-
 \subsection{Scalability Analysis}
 
 Implementation scalability was evaluated across varying security parameters and computational complexities. Table \ref{tab:scalability} presents execution metrics for signature generation across different parameter sets.
 
 \begin{table}[h]
-  \color{blue}
   \centering
   \caption{Scalability Across SLH-DSA Signature Parameter Sets}
   \label{tab:scalability}
@@ -460,8 +451,6 @@ Superior performance was observed across all parameter configurations, with nota
 \section{Conclusion}\label{sec:conclusion}
 
 A thread-adaptive GPU implementation of SLH-DSA was developed that dynamically allocates computational resources based on cryptographic function profiles while decomposing operations into finely-grained parallel tasks. Performance evaluation on an NVIDIA RTX 4090 GPU demonstrated a throughput of 62,239 signatures per second for SPHINCS$^+$-128f parameters, representing a 15.68\% improvement over state-of-the-art implementations. Empirical analysis identified Hypertree construction as the primary performance bottleneck, accounting for 94\% of signing latency despite component-level optimizations. The implementation exhibited particular efficacy for robust parameter variants, with SPHINCS$^+$-128s showing a 25\% latency reduction and 33.5\% throughput enhancement. These results establish GPU platforms as viable acceleration frameworks for post-quantum cryptographic schemes. Future work will focus on Hypertree structure optimization and performance evaluation across diverse GPU architectures.
-
-\color{black}
 
 % \section*{Acknowledgments}
 
