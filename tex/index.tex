@@ -323,25 +323,36 @@ This section presents empirical analyses of the SLH-DSA implementation, examinin
 
 \subsection{Experimental Setup}
 
-Evaluation was conducted on standardized hardware platforms to facilitate comparative analysis. The experimental configuration comprised:
-
-\begin{table}[h]
-  \centering
-  \caption{Experimental Hardware Configuration}
-  \label{tab:hardware_config}
-  \begin{tabular}{@{}ll@{}}
-    \toprule
-    \textbf{Component} & \textbf{GPU System} \\
-    \midrule
-    Processor & NVIDIA RTX 4090 \\
-    Memory & 24GB GDDR6X \\
-    Operating System & Ubuntu 24.04 LTS \\
-    Compiler & CUDA 12.5, GCC 13.3.0 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+\textcolor{blue}{Evaluation was conducted on standardized hardware platforms to facilitate comparative analysis. The experimental configuration comprised the following components: an NVIDIA RTX 4090 GPU with 24GB GDDR6X memory, operating under Ubuntu 24.04 LTS. Compilation was performed using CUDA 12.5 and GCC 13.3.0.}
 
 Testing utilized standardized NIST parameter sets for SLH-DSA at security levels 1 and 3, corresponding to 128 and 192 bits of security. Each measurement was replicated 20 times, with statistical outliers removed using median absolute deviation techniques.
+
+\subsection{Comparative Performance Analysis}
+
+The implementation was benchmarked against state-of-the-art alternatives using SPHINCS$^+$-128f parameters. Table \ref{tab:comparative_perf} presents latency and throughput metrics across comparable hardware platforms.
+
+\begin{table*}[htpb]
+  \centering
+  \caption{Performance Comparison of SLH-DSA Implementations}
+  \label{tab:comparative_perf}
+  \begin{tabular}{@{}lccccccc@{}}
+    \toprule
+    \multirow{2}{*}{\textbf{Parameter Sets, Year [Work], Tasks}} & \multicolumn{3}{c}{\textbf{Latency (ms)}} & \multicolumn{3}{c}{\textbf{Throughput (tasks/sec)}} & \multirow{2}{*}{\textbf{Device}} \\
+    \cmidrule(lr){2-4} \cmidrule(lr){5-7}
+    & \textbf{KG} & \textbf{Sign} & \textbf{Verify} & \textbf{KG} & \textbf{Sign} & \textbf{Verify} & \\
+    \midrule
+    SPHINCS$^+$-128f, 2024 \cite{Kim2024}, 512  & 0.71 & 11.53 & 1.79 & 725,118 (55\%) & 44,391 (97\%) & 285,681 (81\%) & RTX 3090 \\
+    SPHINCS$^+$-128f, 2025 \cite{Wang2025}, 41,984 & 32.07 & 924.24 & 119.16 & 1,309,136 (100\%) & 45,425 (100\%) & 352,333 (100\%) & RTX 3090 \\
+    SPHINCS$^+$-128f, 2025 \cite{Wang2025}$^\dagger$, 32,768 & 22.82 & 609.03 & 72.51 & 1,435,690 (109.7\%) & 53,804 (118.4\%) & 451,883 (128.3\%) & RTX 4090 \\
+    SPHINCS$^+$-128f, This work, 32,768 & \textbf{20.64} & \textbf{526.48} & \textbf{65.24} & \textbf{1,587,849} (\textbf{121.3\%}) & \textbf{62,239} (\textbf{137.0\%}) & \textbf{502,243} (\textbf{142.5\%}) & RTX 4090 \\
+    \bottomrule
+  \end{tabular}
+  \begin{tablenotes}
+  \item[] $\dagger$: Results obtained by executing previously published implementations on the RTX 4090 test environment for direct hardware-equivalent comparison.
+  \end{tablenotes}
+\end{table*}
+
+Consistent performance improvements were observed across all cryptographic operations compared to reference implementations on identical hardware. Key generation, signature generation, and verification latencies decreased by 9.55\%, 13.55\%, and 10.03\% respectively, corresponding to throughput increases of 10.60\%, 15.68\%, and 11.14\%. Signature generation operations exhibited the most substantial performance enhancements.
 
 \subsection{Thread Allocation Efficiency}
 
@@ -392,34 +403,6 @@ FLP effectiveness was assessed through component-level latency analysis within t
 \end{table}
 
 Analysis indicates Hypertree construction dominates signing latency at 94.07\% of total execution time. Despite FLP optimizations of individual hash computations, inherent sequential dependencies and operation volume in the Hypertree constrain achievable parallelism compared to FORS and WOTS\textsuperscript{+} components. This highlights the necessity for targeted optimization of Hypertree structures for future performance enhancements.
-
-\subsection{Comparative Performance Analysis}
-
-The implementation was benchmarked against state-of-the-art alternatives using SPHINCS$^+$-128f parameters. Table \ref{tab:comparative_perf} presents latency and throughput metrics across comparable hardware platforms.
-
-\begin{table*}[t]
-  \centering
-  \caption{Performance Comparison of SLH-DSA Implementations}
-  \label{tab:comparative_perf}
-  \begin{tabular}{@{}lccccccc@{}}
-    \toprule
-    \multirow{2}{*}{\textbf{Parameter Sets, Year [Work], Tasks}} & \multicolumn{3}{c}{\textbf{Latency (ms)}} & \multicolumn{3}{c}{\textbf{Throughput (tasks/sec)}} & \multirow{2}{*}{\textbf{Device}} \\
-    \cmidrule(lr){2-4} \cmidrule(lr){5-7}
-    & \textbf{KG} & \textbf{Sign} & \textbf{Verify} & \textbf{KG} & \textbf{Sign} & \textbf{Verify} & \\
-    \midrule
-    SPHINCS$^+$-128f, 2024 \cite{Kim2024}, 512  & 0.71 & 11.53 & 1.79 & 725,118 (55\%) & 44,391 (97\%) & 285,681 (81\%) & RTX 3090 \\
-    SPHINCS$^+$-128f, 2025 \cite{Wang2025}, 41,984 & 32.07 & 924.24 & 119.16 & 1,309,136 (100\%) & 45,425 (100\%) & 352,333 (100\%) & RTX 3090 \\
-    SPHINCS$^+$-128f, 2025 \cite{Wang2025}$^\dagger$, 32,768 & 22.82 & 609.03 & 72.51 & 1,435,690 (109.7\%) & 53,804 (118.4\%) & 451,883 (128.3\%) & RTX 4090 \\
-    SPHINCS$^+$-128f, This work, 32,768 & \textbf{20.64} & \textbf{526.48} & \textbf{65.24} & \textbf{1,587,849} (\textbf{121.3\%}) & \textbf{62,239} (\textbf{137.0\%}) & \textbf{502,243} (\textbf{142.5\%}) & RTX 4090 \\
-    \bottomrule
-  \end{tabular}
-  \begin{tablenotes}
-  \item[] $\dagger$: Results obtained by executing previously published implementations on the RTX 4090 test environment for direct hardware-equivalent comparison.
-  \end{tablenotes}
-\end{table*}
-
-Consistent performance improvements were observed across all cryptographic operations compared to reference implementations on identical hardware. Key generation, signature generation, and verification latencies decreased by 9.55\%, 13.55\%, and 10.03\% respectively, corresponding to throughput increases of 10.60\%, 15.68\%, and 11.14\%. Signature generation operations exhibited the most substantial performance enhancements.
-
 \subsection{Scalability Analysis}
 
 Implementation scalability was evaluated across varying security parameters and computational complexities. Table \ref{tab:scalability} presents execution metrics for signature generation across different parameter sets.
@@ -432,13 +415,13 @@ Implementation scalability was evaluated across varying security parameters and 
     \toprule
     \textbf{Parameter Set} & \textbf{Latency (ms)} & \textbf{Throughput (tasks/sec)} \\
     \midrule
-    SPHINCS$^+$-128s, \cite{Wang2025} & 12,185.35 & 2,689 \\
+    SPHINCS$^+$-128s \cite{Wang2025} & 12,185.35 & 2,689 \\
     SPHINCS$^+$-128s & 9,125.94 & 3,591 \\
     \midrule
-    SPHINCS$^+$-192f, \cite{Wang2025} & 1,067.26 & 30,703 \\
+    SPHINCS$^+$-192f \cite{Wang2025} & 1,067.26 & 30,703 \\
     SPHINCS$^+$-192f & 977.45 & 33,524 \\
     \midrule
-    SPHINCS$^+$-192s, \cite{Wang2025} & 21,252.11 & 1,542 \\
+    SPHINCS$^+$-192s \cite{Wang2025} & 21,252.11 & 1,542 \\
     SPHINCS$^+$-192s & 18,711.43 & 1,751 \\
     \bottomrule
   \end{tabular}
@@ -474,7 +457,7 @@ A thread-adaptive GPU implementation of SLH-DSA was developed that dynamically a
 % \newpage
 
 % % \bf{If you include a photo:}\vspace{-33pt}
-\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{./fig/slef.jpg}}]{Jiahao Xiang}
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{./fig/self.jpg}}]{Jiahao Xiang}
   is pursuing a Master's degree in Electronic Information at Hengyang Normal University, China. His research focuses on cryptographic engineering and efficient implementations of block ciphers on resource-constrained devices. Publications include works on lightweight cryptography optimization and contributions to open-source cryptographic projects.
 \end{IEEEbiography}
 
