@@ -173,84 +173,86 @@ The CUDA framework enhances computational throughput through memory optimization
 
 This section presents a novel optimization framework for SLH-DSA that employs a dual-component architecture, as illustrated in Fig.~\ref{fig:optimization_architecture}. The framework integrates Adaptive Thread Allocation (ATA) with Function-Level Parallelism (FLP) to maximize computational efficiency while preserving cryptographic integrity.
 
-\begin{figure*}[htbp]
+\begin{figure}[htbp]
   \centering
-  \begin{tikzpicture}[
-      % Define styles with better semantic meaning
-      layer/.style={draw, rounded corners=3pt, dashed, thick, fill=gray!5, minimum width=14cm, minimum height=2.5cm},
-      task/.style={draw, rounded corners=2pt, minimum width=2.2cm, minimum height=1.2cm, align=center, font=\small, fill=purple!5},
-      selected/.style={task, fill=purple!20, ultra thick},
-      component/.style={draw, rounded corners=2pt, minimum width=2.5cm, minimum height=1.2cm, align=center, font=\small, fill=blue!5},
-      gpu/.style={draw, rounded corners=2pt, minimum width=1.1cm, minimum height=0.5cm, font=\scriptsize, align=center, fill=red!5},
-      arrow/.style={->, >=stealth, thick},
-      manyarrows/.style={->, >=stealth, thick, draw=gray!70},
-      highlightarrow/.style={->, >=stealth, thick, draw=purple!60, dashed},
-      highlightbox/.style={draw, rounded corners=2pt, dashed, thick, draw=purple!60, fit=#1}
-    ]
+  \resizebox{0.48\textwidth}{!}{
+    \begin{tikzpicture}[
+        % Define styles with better semantic meaning
+        layer/.style={draw, rounded corners=3pt, dashed, thick, fill=gray!5, minimum width=14cm, minimum height=2.5cm},
+        task/.style={draw, rounded corners=2pt, minimum width=2.2cm, minimum height=1.2cm, align=center, font=\small, fill=purple!5},
+        selected/.style={task, fill=purple!20, ultra thick},
+        component/.style={draw, rounded corners=2pt, minimum width=2.5cm, minimum height=1.2cm, align=center, font=\small, fill=blue!5},
+        gpu/.style={draw, rounded corners=2pt, minimum width=1.1cm, minimum height=0.5cm, font=\scriptsize, align=center, fill=red!5},
+        arrow/.style={->, >=stealth, thick},
+        manyarrows/.style={->, >=stealth, thick, draw=gray!70},
+        highlightarrow/.style={->, >=stealth, thick, draw=purple!60, dashed},
+        highlightbox/.style={draw, rounded corners=2pt, dashed, thick, draw=purple!60, fit=#1}
+      ]
 
-    % Layer boxes with vertical stacking
-    \node[layer, anchor=north, minimum width=14cm, minimum height=3cm] (layer1) at (0,4.5) {};
-    \node[layer, anchor=north, minimum width=14cm, minimum height=2cm] (layer2) at (0,1.0) {};
-    \node[layer, anchor=north] (layer3) at (0,-1.5) {};
+      % Layer boxes with vertical stacking
+      \node[layer, anchor=north, minimum width=14cm, minimum height=3cm] (layer1) at (0,4.5) {};
+      \node[layer, anchor=north, minimum width=14cm, minimum height=2cm] (layer2) at (0,1.0) {};
+      \node[layer, anchor=north] (layer3) at (0,-1.5) {};
 
-    % Layer labels - positioned relative to each layer
-    \node[align=center, font=\small, anchor=west] at ($(layer1.west) + (-2.5,0)$) {Cryptographic\\Operations};
-    \node[align=center, font=\small, anchor=west] at ($(layer2.west) + (-2.5,0)$) {Parallel\\Instances\\with ATA};
-    \node[align=center, font=\small, anchor=west] at ($(layer3.west) + (-2.5,0)$) {Component\\Splitting\\FLP};
+      % Layer labels - positioned relative to each layer
+      \node[align=center, font=\small, anchor=west] at ($(layer1.west) + (-2.5,0)$) {Cryptographic\\Operations};
+      \node[align=center, font=\small, anchor=west] at ($(layer2.west) + (-2.5,0)$) {Parallel\\Instances\\with ATA};
+      \node[align=center, font=\small, anchor=west] at ($(layer3.west) + (-2.5,0)$) {Component\\Splitting\\FLP};
 
-    % Signature tasks with horizontal positioning in top layer
-    \node[task] (keygen) at ($(layer1.center) + (-5,0.7)$) {KeyGen};
-    \node[selected] (sign) at ($(layer1.center) + (0,0.7)$) {Sign};
-    \node[task] (verify) at ($(layer1.center) + (5,0.7)$) {Verify};
+      % Signature tasks with horizontal positioning in top layer
+      \node[task] (keygen) at ($(layer1.center) + (-5,0.7)$) {KeyGen};
+      \node[selected] (sign) at ($(layer1.center) + (0,0.7)$) {Sign};
+      \node[task] (verify) at ($(layer1.center) + (5,0.7)$) {Verify};
 
-    % Task queue - positioned relative to the layer
-    \node[draw, rounded corners=2pt, fill=gray!10, minimum width=12cm, minimum height=0.8cm]
-    (queue) at ($(layer1.south) + (0,0.7)$) {$n$ Task Signatures};
+      % Task queue - positioned relative to the layer
+      \node[draw, rounded corners=2pt, fill=gray!10, minimum width=12cm, minimum height=0.8cm]
+      (queue) at ($(layer1.south) + (0,0.7)$) {$n$ Task Signatures};
 
-    % Connect tasks to queue using relative positioning
-    \foreach \op/\pos in {keygen/-5, sign/0, verify/5} {
-      \draw[arrow] (\op) -- ++(0,-0.8) -| ($(queue.north) + (\pos/2,0)$);
-    }
-
-    % Highlight the selected task path
-    \draw[arrow, ultra thick, draw=purple!50] (sign) -- ++(0,-0.8) -| (queue);
-
-    % Changed to dashed line for middle arrow
-    \draw[ultra thick, draw=purple!50, dashed] (layer1.south) -- ($(layer2.north) + (0,0)$);
-
-    % Label for instances - positioned relative to the connection
-    \node[font=\small] at ($(layer2.north) + (0,-0.3)$) {$t$ parallel instances};
-
-    % Multiple instances of sign task - positioned relative to middle layer
-    \foreach \i/\pos in {1/-5,2/-2.5,3/2.5} {
-      \node[task, fill=purple!20] (sign\i) at ($(layer2.center) + (\pos,0)$) {Sign$_{\i}$};
-    }
-    \node[task, fill=purple!20] (signt) at ($(layer2.center) + (5,0)$) {Sign$_{t}$};
-
-    \node at ($(layer2.center) + (0,0)$) {$\ldots \ldots$};
-
-    % Component splitting - positioned relative to bottom layer
-    \node[component] (fors) at ($(layer3.center) + (-4,0.3)$) {FORS};
-    \node[component] (wots) at ($(layer3.center) + (0,0.3)$) {WOTS\textsuperscript{+}};
-    \node[component] (hypertree) at ($(layer3.center) + (4,0.3)$) {Hypertree};
-
-    % Highlight Sign1 expanding to FLP layer
-    \node[highlightbox={(fors) (wots) (hypertree)}] (flpbox) {};
-    \draw[manyarrows, ultra thick] (sign1.south) -- ($(layer2.south)!0.5!(layer3.north) + (-5,0)$) --
-    ($(layer2.south)!0.5!(layer3.north) + (0,0)$) -- (flpbox.north);
-
-    % GPU Blocks - positioned relative to components
-    \foreach \comp/\name/\pos in {fors/FORS/-4, wots/WOTS/0, hypertree/Hypertree/4} {
-      \foreach \shift in {-1, 0, 1} {
-        \node[gpu] (gpu\name\shift) at ($(\comp.south) + (\shift,-0.6)$) {GPU warp};
-        \draw[arrow] ($(\comp.south) + (\shift,-0.0)$) -- (gpu\name\shift);
+      % Connect tasks to queue using relative positioning
+      \foreach \op/\pos in {keygen/-5, sign/0, verify/5} {
+        \draw[arrow] (\op) -- ++(0,-0.8) -| ($(queue.north) + (\pos/2,0)$);
       }
-    }
 
-  \end{tikzpicture}
+      % Highlight the selected task path
+      \draw[arrow, ultra thick, draw=purple!50] (sign) -- ++(0,-0.8) -| (queue);
+
+      % Changed to dashed line for middle arrow
+      \draw[ultra thick, draw=purple!50, dashed] (layer1.south) -- ($(layer2.north) + (0,0)$);
+
+      % Label for instances - positioned relative to the connection
+      \node[font=\small] at ($(layer2.north) + (0,-0.3)$) {$t$ parallel instances};
+
+      % Multiple instances of sign task - positioned relative to middle layer
+      \foreach \i/\pos in {1/-5,2/-2.5,3/2.5} {
+        \node[task, fill=purple!20] (sign\i) at ($(layer2.center) + (\pos,0)$) {Sign$_{\i}$};
+      }
+      \node[task, fill=purple!20] (signt) at ($(layer2.center) + (5,0)$) {Sign$_{t}$};
+
+      \node at ($(layer2.center) + (0,0)$) {$\ldots \ldots$};
+
+      % Component splitting - positioned relative to bottom layer
+      \node[component] (fors) at ($(layer3.center) + (-4,0.3)$) {FORS};
+      \node[component] (wots) at ($(layer3.center) + (0,0.3)$) {WOTS\textsuperscript{+}};
+      \node[component] (hypertree) at ($(layer3.center) + (4,0.3)$) {Hypertree};
+
+      % Highlight Sign1 expanding to FLP layer
+      \node[highlightbox={(fors) (wots) (hypertree)}] (flpbox) {};
+      \draw[manyarrows, ultra thick] (sign1.south) -- ($(layer2.south)!0.5!(layer3.north) + (-5,0)$) --
+      ($(layer2.south)!0.5!(layer3.north) + (0,0)$) -- (flpbox.north);
+
+      % GPU Blocks - positioned relative to components
+      \foreach \comp/\name/\pos in {fors/FORS/-4, wots/WOTS/0, hypertree/Hypertree/4} {
+        \foreach \shift in {-1, 0, 1} {
+          \node[gpu] (gpu\name\shift) at ($(\comp.south) + (\shift,-0.6)$) {GPU warp};
+          \draw[arrow] ($(\comp.south) + (\shift,-0.0)$) -- (gpu\name\shift);
+        }
+      }
+
+    \end{tikzpicture}
+  }
   \caption{Thread-adaptive parallelization architecture for SLH-DSA. The architecture comprises three hierarchical layers: the top layer represents cryptographic operations (with Sign highlighted); the middle layer implements Adaptive Thread Allocation (ATA) with dynamically optimized thread configurations distributed across $t$ parallel instances; the bottom layer employs Function-Level Parallelism (FLP) by decomposing operations into algorithmic components (FORS, WOTS\textsuperscript{+}, and Hypertree). Each component distributes computation across multiple GPU warps, with each warp containing 32 threads as the fundamental execution unit.}
   \label{fig:optimization_architecture}
-\end{figure*}
+\end{figure}
 
 \subsection{Adaptive Thread Allocation}
 
