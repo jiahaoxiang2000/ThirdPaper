@@ -325,12 +325,12 @@ This section presents empirical analyses of the SLH-DSA implementation, examinin
 \subsection{Experimental Setup}
 
 \textcolor{blue}{Evaluation was conducted on standardized hardware platforms to facilitate comparative analysis. The experimental configuration comprised the following components: an NVIDIA RTX 4090 GPU with 24GB GDDR6X memory, operating under Ubuntu 24.04 LTS. Compilation was performed using CUDA 12.5 and GCC 13.3.0.}
-
 Testing utilized standardized NIST parameter sets for SLH-DSA at security levels 1 and 3, corresponding to 128 and 192 bits of security. Each measurement was replicated 20 times, with statistical outliers removed using median absolute deviation techniques.
 
 \subsection{Comparative Performance Analysis}
 
 The implementation was benchmarked against state-of-the-art alternatives using SPHINCS$^+$-128f parameters. Table \ref{tab:comparative_perf} presents latency and throughput metrics across comparable hardware platforms.
+Consistent performance improvements were observed across all cryptographic operations compared to reference implementations on identical hardware. Key generation, signature generation, and verification latencies decreased by 9.55\%, 13.55\%, and 10.03\% respectively, corresponding to throughput increases of 10.60\%, 15.68\%, and 11.14\%. Signature generation operations exhibited the most substantial performance enhancements.
 
 \begin{table*}[htpb]
   \centering
@@ -352,8 +352,6 @@ The implementation was benchmarked against state-of-the-art alternatives using S
   \item[] $\dagger$: Results obtained by executing previously published implementations on the RTX 4090 test environment for direct hardware-equivalent comparison.
   \end{tablenotes}
 \end{table*}
-
-Consistent performance improvements were observed across all cryptographic operations compared to reference implementations on identical hardware. Key generation, signature generation, and verification latencies decreased by 9.55\%, 13.55\%, and 10.03\% respectively, corresponding to throughput increases of 10.60\%, 15.68\%, and 11.14\%. Signature generation operations exhibited the most substantial performance enhancements.
 
 \subsection{Thread Allocation Efficiency}
 
