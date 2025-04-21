@@ -80,7 +80,7 @@ SPHINCS\textsuperscript{+}, a prominent stateless hash-based signature scheme an
 
 \subsection{Related Work}
 
-\textcolor{blue}{GPU acceleration techniques have been extensively employed for cryptographic algorithms, with notable implementations for conventional primitives such as AES \cite{Lee2022a}. These acceleration methodologies have subsequently been adapted for post-quantum cryptography, particularly SPHINCS\textsuperscript{+}, where implementation approaches have evolved substantially in recent years.}
+GPU acceleration techniques have been extensively employed for cryptographic algorithms, with notable implementations for conventional primitives such as AES \cite{Lee2022a}. These acceleration methodologies have subsequently been adapted for post-quantum cryptography, particularly SPHINCS\textsuperscript{+}, where implementation approaches have evolved substantially in recent years.
 Lee and Hwang~\cite{Lee2022} established the fundamental parallel implementation techniques for hash-based signatures, demonstrating the viability of GPU acceleration for post-quantum cryptography. Building on this foundation, Kim et al.~\cite{Kim2024} developed parallel methods for critical SPHINCS\textsuperscript{+} components—specifically FORS, WOTS\textsuperscript{+}, and Merkle tree computations. Their implementation on the NVIDIA RTX 3090 achieved significant throughput improvements, despite efficiency constraints from multiple kernel invocations.
 
 Subsequently, Wang et al.~\cite{Wang2025} introduced CUSPX, a sophisticated three-level parallelism framework integrating algorithmic, data, and hybrid parallelization approaches. Their implementation featured optimized parallel Merkle tree construction algorithms and strategic load-balancing techniques, resulting in substantial performance enhancements.
@@ -324,7 +324,7 @@ This section presents empirical analyses of the SLH-DSA implementation, examinin
 
 \subsection{Experimental Setup}
 
-\textcolor{blue}{Evaluation was conducted on standardized hardware platforms to facilitate comparative analysis. The experimental configuration comprised the following components: an NVIDIA RTX 4090 GPU with 24GB GDDR6X memory, operating under Ubuntu 24.04 LTS. Compilation was performed using CUDA 12.5 and GCC 13.3.0.}
+Evaluation was conducted on standardized hardware platforms to facilitate comparative analysis. The experimental configuration comprised the following components: an NVIDIA RTX 4090 GPU with 24GB GDDR6X memory, operating under Ubuntu 24.04 LTS. Compilation was performed using CUDA 12.5 and GCC 13.3.0.
 Testing utilized standardized NIST parameter sets for SLH-DSA at security levels 1 and 3, corresponding to 128 and 192 bits of security. Each measurement was replicated 20 times, with statistical outliers removed using median absolute deviation techniques.
 
 \subsection{Comparative Performance Analysis}
