@@ -59,15 +59,15 @@
   The imminent threat posed by quantum computing necessitates an urgent transition to Post-Quantum Cryptography (PQC) to safeguard sensitive data against future cryptanalytic attacks.
   The stateless hash-based digital signature algorithm (SLH-DSA) FIPS 205, while quantum-resistant, presents significant computational challenges for practical deployment.
   This research presents a GPU-accelerated implementation of SLH-DSA that employs a thread-adaptive parallelization methodology to maximize throughput.
-  In contrast to conventional approaches utilizing fixed maximum thread allocation, the proposed implementation dynamically optimizes parallelism levels for individual cryptographic kernel functions, thereby establishing an equilibrium between thread utilization and execution efficiency.
+  In contrast to conventional approaches utilizing fixed maximum thread allocation, the proposed implementation dynamically optimizes parallelism levels for individual cryptographic  functions, thereby establishing an equilibrium between thread utilization and execution efficiency.
   Furthermore, granular decomposition of signature components is implemented to enhance thread-level execution performance.
-  Performance evaluation conducted on an NVIDIA RTX 4090 GPU demonstrates that the implementation attains a throughput of 62,239 signatures per second for the SPHINCS$^+$-128f parameter set, representing a significant performance improvement over existing methodologies.
+  Performance evaluation conducted on an NVIDIA RTX 4090 GPU demonstrates that the implementation attains a throughput of 62,239 signatures per second for the SHA2-128f parameter set, representing a significant performance improvement over existing methodologies.
   The empirical results establish GPUs as viable platforms for SLH-DSA acceleration in high-throughput environments, thus facilitating the practical transition to post-quantum cryptographic standards.
 
 \end{abstract}
 
 \begin{IEEEkeywords}
-  FIPS 205, GPU, SPHINCS\textsuperscript{+}, Signature algorithm.
+  FIPS 205, GPU, SPHINCS\textsuperscript{+}, Signature algorithm, Parallel optimization.
 \end{IEEEkeywords}
 
 \section{Introduction}
@@ -80,8 +80,8 @@ SPHINCS\textsuperscript{+}, a prominent stateless hash-based signature scheme an
 
 \subsection{Related Work}
 
-GPU acceleration techniques have been extensively employed for cryptographic algorithms, with notable implementations for conventional primitives such as AES \cite{Lee2022a}. These acceleration methodologies have subsequently been adapted for post-quantum cryptography, particularly SPHINCS\textsuperscript{+}, where implementation approaches have evolved substantially in recent years.
-Lee and Hwang~\cite{Lee2022} established the fundamental parallel implementation techniques for hash-based signatures, demonstrating the viability of GPU acceleration for post-quantum cryptography. Building on this foundation, Kim et al.~\cite{Kim2024} developed parallel methods for critical SPHINCS\textsuperscript{+} components—specifically FORS, WOTS\textsuperscript{+}, and Merkle tree computations. Their implementation on the NVIDIA RTX 3090 achieved significant throughput improvements, despite efficiency constraints from multiple kernel invocations.
+GPU acceleration techniques have been extensively employed for cryptographic algorithms, with notable implementations for conventional primitives such as AES \cite{Lee2022a}. These acceleration methodologies have subsequently been adapted for post-quantum cryptography, particularly SLH-DSA, where implementation approaches have evolved substantially in recent years.
+Lee and Hwang~\cite{Lee2022} established the fundamental parallel implementation techniques for hash-based signatures, demonstrating the viability of GPU acceleration for post-quantum cryptography. Building on this foundation, Kim et al.~\cite{Kim2024} developed parallel methods for critical SLH-DSA components—specifically FORS, WOTS\textsuperscript{+}, and Merkle tree computations. Their implementation on the NVIDIA RTX 3090 achieved significant throughput improvements, despite efficiency constraints from multiple kernel invocations.
 
 Subsequently, Wang et al.~\cite{Wang2025} introduced CUSPX, a sophisticated three-level parallelism framework integrating algorithmic, data, and hybrid parallelization approaches. Their implementation featured optimized parallel Merkle tree construction algorithms and strategic load-balancing techniques, resulting in substantial performance enhancements.
 
@@ -102,7 +102,7 @@ This paper presents a thread-adaptive GPU-based implementation of SLH-DSA with t
 
   \item A sophisticated function-level parallelization approach that strategically decomposes cryptographic operations into independent computational tasks, significantly reducing latency and enhancing the performance of core SLH-DSA primitives.
 
-  \item Performance evaluation on NVIDIA GPU architecture demonstrating a throughput of 62,239 SLH-DSA signatures per second (for SPHINCS$^+$-128f), representing substantial improvement over state-of-the-art implementations.
+  \item Performance evaluation on NVIDIA GPU architecture demonstrating a throughput of 62,239 SLH-DSA signatures per second (for SHA2-128f), representing substantial improvement over state-of-the-art implementations.
     The complete implementation is available as an open-source repository at \url{https://github.com/jiahaoxiang2000/sphincs-plus}.
 \end{enumerate}
 
@@ -161,6 +161,8 @@ SLH-DSA represents a stateless hash-based signature scheme that provides post-qu
 \end{figure}
 
 The SLH-DSA signature generation process, illustrated in Fig.~\ref{fig:sphincs-process}, implements a hierarchical authentication structure. Initially, a message digest is generated through hashing, followed by FORS few-time scheme signing, which produces $k$ authentication paths comprising $t$ elements each. The resulting FORS public key undergoes authentication via a $d$-layer hypertree, where each layer applies WOTS\textsuperscript{+} to sign the lower layer's root. This signature chain terminates at the final root node, enabling efficient verification while maintaining robust hash-based security.
+
+% TODO: need to update the meaning of S and F.
 
 SLH-DSA offers ``simple" and ``robust" operational modes to optimize speed-security trade-offs. Various parameter sets accommodate different requirements regarding signature size, security level, and computational efficiency. The scheme derives all security properties from underlying hash functions, rendering it resistant to quantum computational attacks.
 
@@ -329,7 +331,7 @@ Testing utilized standardized NIST parameter sets for SLH-DSA at security levels
 
 \subsection{Comparative Performance Analysis}
 
-The implementation was benchmarked against state-of-the-art alternatives using SPHINCS$^+$-128f parameters. Table \ref{tab:comparative_perf} presents latency and throughput metrics across comparable hardware platforms.
+The implementation was benchmarked against state-of-the-art alternatives using SHA2-128f parameters. Table \ref{tab:comparative_perf} presents latency and throughput metrics across comparable hardware platforms.
 Consistent performance improvements were observed across all cryptographic operations compared to reference implementations on identical hardware. Key generation, signature generation, and verification latencies decreased by 9.55\%, 13.55\%, and 10.03\% respectively, corresponding to throughput increases of 10.60\%, 15.68\%, and 11.14\%. Signature generation operations exhibited the most substantial performance enhancements.
 
 \begin{table*}[htpb]
@@ -342,10 +344,10 @@ Consistent performance improvements were observed across all cryptographic opera
     \cmidrule(lr){2-4} \cmidrule(lr){5-7}
     & \textbf{KG} & \textbf{Sign} & \textbf{Verify} & \textbf{KG} & \textbf{Sign} & \textbf{Verify} & \\
     \midrule
-    SPHINCS$^+$-128f, 2024 \cite{Kim2024}, 512  & 0.71 & 11.53 & 1.79 & 725,118 (55\%) & 44,391 (97\%) & 285,681 (81\%) & RTX 3090 \\
-    SPHINCS$^+$-128f, 2025 \cite{Wang2025}, 41,984 & 32.07 & 924.24 & 119.16 & 1,309,136 (100\%) & 45,425 (100\%) & 352,333 (100\%) & RTX 3090 \\
-    SPHINCS$^+$-128f, 2025 \cite{Wang2025}$^\dagger$, 32,768 & 22.82 & 609.03 & 72.51 & 1,435,690 (109.7\%) & 53,804 (118.4\%) & 451,883 (128.3\%) & RTX 4090 \\
-    SPHINCS$^+$-128f, This work, 32,768 & \textbf{20.64} & \textbf{526.48} & \textbf{65.24} & \textbf{1,587,849} (\textbf{121.3\%}) & \textbf{62,239} (\textbf{137.0\%}) & \textbf{502,243} (\textbf{142.5\%}) & RTX 4090 \\
+    SHA2-128f, 2024 \cite{Kim2024}, 512  & 0.71 & 11.53 & 1.79 & 725,118 (55\%) & 44,391 (97\%) & 285,681 (81\%) & RTX 3090 \\
+    SHA2-128f, 2025 \cite{Wang2025}, 41,984 & 32.07 & 924.24 & 119.16 & 1,309,136 (100\%) & 45,425 (100\%) & 352,333 (100\%) & RTX 3090 \\
+    SHA2-128f, 2025 \cite{Wang2025}$^\dagger$, 32,768 & 22.82 & 609.03 & 72.51 & 1,435,690 (109.7\%) & 53,804 (118.4\%) & 451,883 (128.3\%) & RTX 4090 \\
+    SHA2-128f, This work, 32,768 & \textbf{20.64} & \textbf{526.48} & \textbf{65.24} & \textbf{1,587,849} (\textbf{121.3\%}) & \textbf{62,239} (\textbf{137.0\%}) & \textbf{502,243} (\textbf{142.5\%}) & RTX 4090 \\
     \bottomrule
   \end{tabular}
   \begin{tablenotes}
@@ -365,15 +367,15 @@ ATA efficacy was evaluated through execution time measurements across varying th
     \toprule
     \textbf{Operation} & \boldmath$\alpha_i$ & \boldmath$\beta_i$ & \boldmath$\gamma_i$ & \boldmath$t_i^*$ \\
     \midrule
-    128F-keypair & 52.06 & 506,000.57 & 1.26E-4 & 63,310 \\
-    128F-sign & 1386.01 & 13,231,567.75 & 3.60E-3 & 60,636 \\
-    128F-verify & 164.72 & 1,395,012.54 & 4.54E-4 & 55,407 \\
-    128S-keypair & 3317.74 & 32,046,199.26 & 7.15E-3 & 66,929 \\
-    128S-sign & 23716.81 & 248,632,501.64 & 6.59E-2 & 61,419 \\
-    128S-verify & 63.22 & 484,914.46 & 1.44E-4 & 57,968 \\
-    192F-keypair & 79.37 & 822,859.78 & 2.40E-4 & 58,560 \\
-    192F-sign & 2319.70 & 23,961,551.63 & 8.55E-3 & 52,932 \\
-    192F-verify & 267.63 & 2,342,878.75 & 8.91E-4 & 51,274 \\
+    SHA2-128f-keypair & 52.06 & 506,000.57 & 1.26E-4 & 63,310 \\
+    SHA2-128f-sign & 1386.01 & 13,231,567.75 & 3.60E-3 & 60,636 \\
+    SHA2-128f-verify & 164.72 & 1,395,012.54 & 4.54E-4 & 55,407 \\
+    SHA2-128s-keypair & 3317.74 & 32,046,199.26 & 7.15E-3 & 66,929 \\
+    SHA2-128s-sign & 23716.81 & 248,632,501.64 & 6.59E-2 & 61,419 \\
+    SHA2-128s-verify & 63.22 & 484,914.46 & 1.44E-4 & 57,968 \\
+    SHA2-192f-keypair & 79.37 & 822,859.78 & 2.40E-4 & 58,560 \\
+    SHA2-192f-sign & 2319.70 & 23,961,551.63 & 8.55E-3 & 52,932 \\
+    SHA2-192f-verify & 267.63 & 2,342,878.75 & 8.91E-4 & 51,274 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -382,11 +384,11 @@ Results confirm that non-optimal thread counts introduce significant performance
 
 \subsection{Function-Level Parallelism Impact}
 
-FLP effectiveness was assessed through component-level latency analysis within the signing process. Table \ref{tab:flp_impact} presents the latency distribution for SPHINCS$^+$-128f across FORS, WOTS\textsuperscript{+}, and Hypertree operations.
+FLP effectiveness was assessed through component-level latency analysis within the signing process. Table \ref{tab:flp_impact} presents the latency distribution for SHA2-128f across FORS, WOTS\textsuperscript{+}, and Hypertree operations.
 
 \begin{table}[h]
   \centering
-  \caption{Latency Breakdown of Signing Operation (SPHINCS$^+$-128f)}
+  \caption{Latency Breakdown of Signing Operation (SHA2-128f)}
   \label{tab:flp_impact}
   \begin{tabular}{@{}lcc@{}}
     \toprule
@@ -414,23 +416,23 @@ Implementation scalability was evaluated across varying security parameters and 
     \toprule
     \textbf{Parameter Set} & \textbf{Latency (ms)} & \textbf{Throughput (tasks/sec)} \\
     \midrule
-    SPHINCS$^+$-128s \cite{Wang2025} & 12,185.35 & 2,689 \\
-    SPHINCS$^+$-128s & 9,125.94 & 3,591 \\
+    SHA2-128s \cite{Wang2025} & 12,185.35 & 2,689 \\
+    SHA2-128s & 9,125.94 & 3,591 \\
     \midrule
-    SPHINCS$^+$-192f \cite{Wang2025} & 1,067.26 & 30,703 \\
-    SPHINCS$^+$-192f & 977.45 & 33,524 \\
+    SHA2-192f \cite{Wang2025} & 1,067.26 & 30,703 \\
+    SHA2-192f & 977.45 & 33,524 \\
     \midrule
-    SPHINCS$^+$-192s \cite{Wang2025} & 21,252.11 & 1,542 \\
-    SPHINCS$^+$-192s & 18,711.43 & 1,751 \\
+    SHA2-192s \cite{Wang2025} & 21,252.11 & 1,542 \\
+    SHA2-192s & 18,711.43 & 1,751 \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-Superior performance was observed across all parameter configurations, with notable improvements for robust variants. The SPHINCS$^+$-128s parameter set exhibited a 25\% latency reduction and 33.5\% throughput enhancement. Thread-adaptive techniques proved most effective for computationally intensive operations with smaller hash sizes. Diminishing returns were observed at higher security levels due to increased synchronization overhead, reflecting an inherent trade-off between security parameters and parallel execution efficiency.
+Superior performance was observed across all parameter configurations, with notable improvements for robust variants. The SHA2-128s parameter set exhibited a 25\% latency reduction and 33.5\% throughput enhancement. Thread-adaptive techniques proved most effective for computationally intensive operations with smaller hash sizes. Diminishing returns were observed at higher security levels due to increased synchronization overhead, reflecting an inherent trade-off between security parameters and parallel execution efficiency.
 
 \section{Conclusion}\label{sec:conclusion}
 
-A thread-adaptive GPU implementation of SLH-DSA was developed that dynamically allocates computational resources based on cryptographic function profiles while decomposing operations into finely-grained parallel tasks. Performance evaluation on an NVIDIA RTX 4090 GPU demonstrated a throughput of 62,239 signatures per second for SPHINCS$^+$-128f parameters, representing a 15.68\% improvement over state-of-the-art implementations. Empirical analysis identified Hypertree construction as the primary performance bottleneck, accounting for 94\% of signing latency despite component-level optimizations. The implementation exhibited particular efficacy for robust parameter variants, with SPHINCS$^+$-128s showing a 25\% latency reduction and 33.5\% throughput enhancement. These results establish GPU platforms as viable acceleration frameworks for post-quantum cryptographic schemes. Future work will focus on Hypertree structure optimization and performance evaluation across diverse GPU architectures.
+A thread-adaptive GPU implementation of SLH-DSA was developed that dynamically allocates computational resources based on cryptographic function profiles while decomposing operations into finely-grained parallel tasks. Performance evaluation on an NVIDIA RTX 4090 GPU demonstrated a throughput of 62,239 signatures per second for SHA2-128f parameters, representing a 15.68\% improvement over state-of-the-art implementations. Empirical analysis identified Hypertree construction as the primary performance bottleneck, accounting for 94\% of signing latency despite component-level optimizations. The implementation exhibited particular efficacy for robust parameter variants, with SHA2-128s showing a 25\% latency reduction and 33.5\% throughput enhancement. These results establish GPU platforms as viable acceleration frameworks for post-quantum cryptographic schemes. Future work will focus on Hypertree structure optimization and performance evaluation across diverse GPU architectures.
 
 % \section*{Acknowledgments}
 
