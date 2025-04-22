@@ -304,20 +304,19 @@ The thread allocation optimization methodology is presented in Algorithm~\ref{al
 
 \subsection{Function-Level Parallelism}
 
-This implementation decomposes hash functions into parallel tasks rather than treating them as atomic operations, reducing cryptographic latency through fine-grained parallelization.
+Function-Level Parallelism  decomposes cryptographic operations into granular computational tasks that can be executed concurrently rather than treating them as atomic units. This approach enables fine-grained parallelization across multiple execution threads, resulting in reduced cryptographic latency through optimal resource utilization. The implementation applies this methodology to the three core components of SLH-DSA: WOTS$^+$, FORS, and Hypertree.
 
 \subsubsection{WOTS\texorpdfstring{$^+$}{+} Parallelization}
 
-Concurrent computation of $l$ independent hash chains by assigning chains or segments to distinct threads, when all the chains computer finish, then need to combined to one left node, if let the result to global memory, it will be slower, so here we storage the inter value to shared memory on GPU. For hypertree structures, multiple Merkle tree leaf root is independent, so the different Merkle tree WOTS\texorpdfstring{$^+$}{+} public keys are generated simultaneously, with shared memory optimizing authentication path construction. those different with the \cite{Kim2024}.
+The WOTS$^+$ implementation facilitates concurrent computation of $l$ independent hash chains by allocating individual chains or chain segments to distinct GPU threads. After hash chain computation completion, results are consolidated into leaf nodes using GPU shared memory rather than global memory to minimize access latencies. For hypertree structures, multiple Merkle tree WOTS$^+$ public keys are generated simultaneously, with shared memory buffers optimizing authentication path construction. This approach differs significantly from previous implementations \cite{Kim2024}.
 
 \subsubsection{FORS Parallelization}
 
-Parallel generation of $k \times 2^a$ secret key elements and leaf nodes, followed by concurrent construction of $k$ Merkle trees. Shared memory aggregates tree roots to minimize global memory accesses during public key derivation.
+The FORS component implementation employs fine-grained parallelism for generating $k \times 2^a$ secret key elements and leaf nodes concurrently. Multiple Merkle trees are constructed simultaneously, with each of the $k$ trees assigned to independent thread blocks. Shared memory buffers are strategically employed during tree construction to aggregate intermediate roots, significantly reducing global memory access operations during public key derivation. This approach builds upon methodologies established in \cite{Wang2025} while enhancing memory utilization patterns for the specific characteristics of the FORS structure.
 
 \subsubsection{Hypertree Parallelization}
-Concurrent construction of multiple Merkle trees across all $d$ layers. Threads compute nodes at identical levels but in different trees, enabling simultaneous execution of WOTS$^+$ key generation, hash chain computation, and node hashing operations.
 
-These techniques, combined with coalesced memory access patterns and strategic shared memory utilization, significantly reduce execution latency compared to signature-level parallelism approaches.
+For the hypertree construction, parallel processing is applied across multiple Merkle trees spanning all $d$ layers. The leaf nodes are initially generated through parallel hash chain computations before being consolidated into tree structures. Due to shared memory constraints preventing full parallelization of all nodes across all layers, a semi-parallel approach was implemented. This methodology differs from the full-node parallelization presented in \cite{Wang2025} by employing a hierarchical execution strategy where each thread processes four-node combinations rather than two-node combinations, thereby reducing synchronization overhead. This approach optimizes thread utilization while accommodating the memory limitations inherent in complex hypertree structures.
 
 \section{Performance Evaluation}\label{sec:evaluation}
 
