@@ -2,6 +2,7 @@
   "cSpell.words": [
     "bitsliced",
     "Bitslicing",
+    "cryptosystems",
     "CUDA",
     "CUSPX",
     "FIPS",
@@ -10,8 +11,10 @@
     "Hengyang",
     "Hypertree",
     "Merkle",
+    "Shor's",
     "SIMT",
     "SPHINCS",
-    "subfigure"
+    "subfigure",
+    "underutilize"
   ]
 }
