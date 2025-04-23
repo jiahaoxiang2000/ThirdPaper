@@ -316,11 +316,9 @@ The FORS component implementation employs fine-grained parallelism for generatin
 
 \subsubsection{Hypertree Parallelization}
 
-For the hypertree construction, parallel processing is applied across multiple Merkle trees spanning all $d$ layers. The leaf nodes are initially generated through parallel hash chain computations before being consolidated into tree structures. Due to shared memory constraints preventing full parallelization of all nodes across all layers, a semi-parallel approach was implemented. This methodology differs from the full-node parallelization presented in \cite{Wang2025} by employing a hierarchical execution strategy where each thread processes four-node combinations rather than two-node combinations, thereby reducing synchronization overhead. This approach optimizes thread utilization while accommodating the memory limitations inherent in complex hypertree structures.
+For the hypertree construction, parallel processing is applied across multiple Merkle trees spanning all $d$ layers. The leaf nodes are initially generated through parallel hash chain computations before being consolidated into tree structures. Due to shared memory constraints preventing full parallelization of all nodes across all layers, a semi-parallel approach was implemented. This methodology differs from the full-node parallelization presented in \cite{Wang2025} by employing a hierarchical execution strategy where each thread processes four-node combinations rather than two-node combinations, thereby reducing synchronization overhead.
 
 \section{Performance Evaluation}\label{sec:evaluation}
-
-This section presents empirical analyses of the SLH-DSA implementation, examining optimization effectiveness and performance characteristics across computational environments.
 
 \subsection{Experimental Setup}
 
@@ -330,7 +328,7 @@ Testing utilized standardized NIST parameter sets for SLH-DSA at security levels
 \subsection{Comparative Performance Analysis}
 
 The implementation was benchmarked against state-of-the-art alternatives using SHA2-128f parameters. Table \ref{tab:comparative_perf} presents latency and throughput metrics across comparable hardware platforms.
-Consistent performance improvements were observed across all cryptographic operations compared to reference implementations on identical hardware. Key generation, signature generation, and verification latencies decreased by 9.55\%, 13.55\%, and 10.03\% respectively, corresponding to throughput increases of 10.60\%, 15.68\%, and 11.14\%. Signature generation operations exhibited the most substantial performance enhancements.
+Consistent performance improvements were observed across all cryptographic operations compared to reference implementations on identical hardware. For SHA2-128f, key generation, signature generation, and verification latencies were reduced, and corresponding throughput was increased. Specifically, compared to Kim et al.~\cite{Kim2024}, the throughput of our implementation is 1.40$\times$ for key generation, 1.40$\times$ for signature generation, and 1.76$\times$ for verification. Compared to Wang et al.~\cite{Wang2025}, the throughput is 1.11$\times$, 1.16$\times$, and 1.43$\times$ for key generation, signature generation, and verification, respectively, on the same hardware (RTX 4090).
 
 \begin{table*}[htpb]
   \centering
@@ -365,13 +363,13 @@ ATA efficacy was evaluated through execution time measurements across varying th
     \toprule
     \textbf{Operation} & \boldmath$\alpha_i$ & \boldmath$\beta_i$ & \boldmath$\gamma_i$ & \boldmath$t_i^*$ \\
     \midrule
-    SHA2-128f-keypair & 52.06 & 506,000.57 & 1.26E-4 & 63,310 \\
+    SHA2-128f-keygen & 52.06 & 506,000.57 & 1.26E-4 & 63,310 \\
     SHA2-128f-sign & 1386.01 & 13,231,567.75 & 3.60E-3 & 60,636 \\
     SHA2-128f-verify & 164.72 & 1,395,012.54 & 4.54E-4 & 55,407 \\
-    SHA2-128s-keypair & 3317.74 & 32,046,199.26 & 7.15E-3 & 66,929 \\
+    SHA2-128s-keygen & 3317.74 & 32,046,199.26 & 7.15E-3 & 66,929 \\
     SHA2-128s-sign & 23716.81 & 248,632,501.64 & 6.59E-2 & 61,419 \\
     SHA2-128s-verify & 63.22 & 484,914.46 & 1.44E-4 & 57,968 \\
-    SHA2-192f-keypair & 79.37 & 822,859.78 & 2.40E-4 & 58,560 \\
+    SHA2-192f-keygen & 79.37 & 822,859.78 & 2.40E-4 & 58,560 \\
     SHA2-192f-sign & 2319.70 & 23,961,551.63 & 8.55E-3 & 52,932 \\
     SHA2-192f-verify & 267.63 & 2,342,878.75 & 8.91E-4 & 51,274 \\
     \bottomrule
