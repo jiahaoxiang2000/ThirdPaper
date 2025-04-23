@@ -376,7 +376,9 @@ ATA efficacy was evaluated through execution time measurements across varying th
   \end{tabular}
 \end{table}
 
-Results confirm that non-optimal thread counts introduce significant performance degradation. Implementation with thread counts rounded to powers of 2 (typically 32,768) demonstrated 10-20\% performance improvements compared to fixed-thread approaches, validating the adaptive thread allocation model's effectiveness.
+The execution time model parameters reveal distinct characteristics across cryptographic operations. The $\alpha_i$ parameter quantifies non-parallelizable sequential overhead, with sign operations exhibiting substantially higher values (e.g., SHA2-128s-sign: 23716.81) than key generation and verification operations. The $\beta_i$ coefficient represents parallelizable workload components, with higher values indicating greater potential performance gain from increased parallelism. The $\gamma_i$ parameter measures synchronization and thread management overhead, which increases with thread count.
+
+According to equation (\ref{eq:optimal_thread_count}), operations with higher $\beta_i/\gamma_i$ ratios yield higher optimal thread counts. Experimental validation confirms performance degradation of 18-23\% when exceeding optimal thread allocation ($t_i^*$) and significant latency increases when using insufficient threads. Notable consistency in optimal thread allocation is observed within parameter sets (e.g., 55,407-63,310 for SHA2-128f), while security level transitions show distinct allocation patterns, reflecting fundamental algorithmic characteristics.
 
 \subsection{Function-Level Parallelism Impact}
 
