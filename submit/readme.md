@@ -11,7 +11,7 @@ here we first want to submit is the _IEEE Transactions on Circuits and Systems P
 - [x] Main Manuscript latex document
   - [x] all latex files on one _zip_ use `zip -r PaperTex.zip tex` to create the zip file
   - [x] main Document pdf, on the `tex/index.pdf`
-- [ ] Conflict of Interest word document
+- [x] Conflict of Interest word document, here we click _none_, then autogenerate the document
 - [ ] Cover letter
 - [x] submit category,
   - DCS120B0 — Cryptography hardware and implementation
