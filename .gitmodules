@@ -1,6 +1,8 @@
 [submodule "sphincs-plus"]
 	path = sphincs-plus
 	url = git@github.com:jiahaoxiang2000/sphincs-plus.git
+	branch = main
 [submodule ".github/prompts"]
 	path = .github/prompts
 	url = git@github.com:jiahaoxiang2000/prompts
+	branch = main
