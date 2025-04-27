@@ -353,7 +353,7 @@ Consistent performance improvements were observed across all cryptographic opera
     SHA2-128f, 2024 \cite{Kim2024}, 512  & 0.71 & 11.53 & 1.79 & 725,118 (55\%) & 44,391 (97\%) & 285,681 (81\%) & RTX 3090 \\
     SHA2-128f, 2025 \cite{Wang2025}, 41,984 & 32.07 & 924.24 & 119.16 & 1,309,136 (100\%) & 45,425 (100\%) & 352,333 (100\%) & RTX 3090 \\
     SHA2-128f, 2025 \cite{Wang2025}$^\dagger$, 32,768 & 22.82 & 609.03 & 72.51 & 1,435,690 (109.7\%) & 53,804 (118.4\%) & 451,883 (128.3\%) & RTX 4090 \\
-    SHA2-128f, This work, 32,768 & \textbf{20.64} & \textbf{526.48} & \textbf{65.24} & \textbf{1,587,849} (\textbf{121.3\%}) & \textbf{62,239} (\textbf{137.0\%}) & \textbf{502,243} (\textbf{142.5\%}) & RTX 4090 \\
+    SHA2-128f, This work, 32,768 & 20.64 & 526.48 & 65.24 & \textbf{1,587,849} (\textbf{121.3\%}) & \textbf{62,239} (\textbf{137.0\%}) & \textbf{502,243} (\textbf{142.5\%}) & RTX 4090 \\
     \bottomrule
   \end{tabular}
   \begin{tablenotes}
@@ -386,32 +386,45 @@ ATA efficacy was evaluated through execution time measurements across varying th
   \end{tabular}
 \end{table}
 
+\color{blue}
+
 The execution time model parameters reveal distinct characteristics across cryptographic operations. The $\alpha_i$ parameter quantifies non-parallelizable sequential overhead, with sign operations exhibiting substantially higher values (e.g., SHA2-128s-sign: 23716.81) than key generation and verification operations. The $\beta_i$ coefficient represents parallelizable workload components, with higher values indicating greater potential performance gain from increased parallelism. The $\gamma_i$ parameter measures synchronization and thread management overhead, which increases with thread count.
 
 According to equation (\ref{eq:optimal_thread_count}), operations with higher $\beta_i/\gamma_i$ ratios yield higher optimal thread counts. Experimental validation confirms performance degradation of 18-23\% when exceeding optimal thread allocation ($t_i^*$) and significant latency increases when using insufficient threads. Notable consistency in optimal thread allocation is observed within parameter sets (e.g., 55,407-63,310 for SHA2-128f), while security level transitions show distinct allocation patterns, reflecting fundamental algorithmic characteristics.
 
+\color{black}
+
 \subsection{Function-Level Parallelism Impact}
 
-FLP effectiveness was assessed through component-level latency analysis within the signing process. Table \ref{tab:flp_impact} presents the latency distribution for SHA2-128f across FORS, WOTS\textsuperscript{+}, and Hypertree operations.
-
-\begin{table}[h]
+\begin{figure}[h]
   \centering
-  \caption{Latency Breakdown of Signing Operation (SHA2-128f)}
-  \label{tab:flp_impact}
-  \begin{tabular}{@{}lcc@{}}
-    \toprule
-    \textbf{Component} & \textbf{Latency (ms)} & \textbf{Percentage of Total} \\
-    \midrule
-    WOTS\textsuperscript{+} Sign & 1.857 & 0.35\% \\
-    FORS Sign & 29.371 & 5.58\% \\
-    Hypertree Sign & 495.252 & 94.07\% \\
-    \midrule
-    Total Sign Latency & 526.48 & 100.00\% \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+  \begin{tikzpicture}
+    % Pie chart: values are percentages
+    \def\wots{0.35}
+    \def\fors{5.58}
+    \def\hypertree{94.42}
+    \def\startAngle{0}
+    % WOTS+ slice
+    \fill[blue!40] (0,0) -- (\startAngle:1.5) arc (\startAngle:\startAngle+\wots*3.6:1.5) -- (0,0);
+    \pgfmathsetmacro\angleA{\startAngle+\wots*3.6}
+    % FORS slice
+    \fill[orange!60] (0,0) -- (\angleA:1.5) arc (\angleA:\angleA+\fors*3.6:1.5) -- (0,0);
+    \pgfmathsetmacro\angleB{\angleA+\fors*3.6}
+    % Hypertree slice
+    \fill[blue!60] (0,0) -- (\angleB:1.5) arc (\angleB:\angleB+\hypertree*3.6:1.5) -- (0,0);
 
-Analysis indicates Hypertree construction dominates signing latency at 94.07\% of total execution time. Despite FLP optimizations of individual hash computations, inherent sequential dependencies and operation volume in the Hypertree constrain achievable parallelism compared to FORS and WOTS\textsuperscript{+} components. This highlights the necessity for targeted optimization of Hypertree structures for future performance enhancements.
+    % Labels
+    \node[blue!80, font=\small] at ({\startAngle-0.5*\fors*3.6}:2.5) {\shortstack{WOTS\textsuperscript{+}\\ 0.35\%}};
+    \node[orange!80, font=\small] at ({\angleA+0.5*\fors*3.6}:2.5) {\shortstack{FORS\\5.58\%}};
+    \pgfmathsetmacro{\hypertreeAngle}{\angleB+0.5*\hypertree*3.6}
+    \node[blue!80, font=\small] at (\hypertreeAngle:2.4) {\shortstack{Hypertree \\ 94.42\%}};
+  \end{tikzpicture}
+  \caption{Signing latency breakdown for SHA2-128f.}
+  \label{fig:flp_pie}
+\end{figure}
+
+Analysis indicates that Hypertree construction dominates signing latency, accounting for 94.42\% of total execution time (497.11 ms), while FORS and WOTS\textsuperscript{+} contribute 5.58\% (29.37 ms) and 0.35\% (1.857 ms), respectively, as visually depicted in Fig.~\ref{fig:flp_pie}. Despite FLP optimizations of individual hash computations, inherent sequential dependencies and operation volume in the Hypertree constrain achievable parallelism compared to FORS and WOTS\textsuperscript{+} components. This observation highlights the necessity for targeted optimization of Hypertree structures for future performance enhancements.
+
 \subsection{Scalability Analysis}
 
 Implementation scalability was evaluated across varying security parameters and computational complexities. Table \ref{tab:scalability} presents execution metrics for signature generation across different parameter sets.
