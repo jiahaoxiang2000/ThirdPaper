@@ -1,0 +1,110 @@
+\documentclass{article}
+
+\usepackage{charter} % Use the Charter font
+\usepackage{xcolor}
+\usepackage[
+	a4paper, % Paper size
+	top=1in, % Top margin
+	bottom=1in, % Bottom margin
+	left=1in, % Left margin
+	right=1in, % Right margin
+	%showframe % Uncomment to show frames around the margins for debugging purposes
+]{geometry}
+
+\setlength{\parindent}{0pt} % Paragraph indentation
+\setlength{\parskip}{1em} % Vertical space between paragraphs
+
+\usepackage{graphicx} % Required for including images
+
+\usepackage{fancyhdr} % Required for customizing headers and footers
+
+\fancypagestyle{firstpage}{%
+	\fancyhf{} % Clear default headers/footers
+	\renewcommand{\headrulewidth}{0pt} % No header rule
+	\renewcommand{\footrulewidth}{1pt} % Footer rule thickness
+}
+
+\fancypagestyle{subsequentpages}{%
+	\fancyhf{} % Clear default headers/footers
+	\renewcommand{\headrulewidth}{1pt} % Header rule thickness
+	\renewcommand{\footrulewidth}{1pt} % Footer rule thickness
+}
+
+\AtBeginDocument{\thispagestyle{firstpage}} % Use the first page headers/footers style on the first page
+\pagestyle{subsequentpages} % Use the subsequent pages headers/footers style on subsequent pages
+
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+
+%----------------------------------------------------------------------------------------
+%	FIRST PAGE HEADER
+%----------------------------------------------------------------------------------------
+
+% \includegraphics[width=0.4\textwidth]{neu.png} % Logo
+
+% \vspace{-1em} % Pull the rule closer to the logo
+
+\rule{\linewidth}{1pt} % Horizontal rule
+
+\bigskip\bigskip % Vertical whitespace
+
+%----------------------------------------------------------------------------------------
+%	YOUR NAME AND CONTACT INFORMATION
+%----------------------------------------------------------------------------------------
+
+\hfill
+\begin{tabular}{l @{}}
+\hfill \today \bigskip\\ % Date
+\hfill Lang Li \\
+\hfill Email: lilang911@126.com \\
+\hfill Hengyang, Hunan Province, China, 421002 \\ % Address
+\end{tabular}
+
+\bigskip % Vertical whitespace
+
+%----------------------------------------------------------------------------------------
+%	ADDRESSEE AND GREETING
+%----------------------------------------------------------------------------------------
+
+% \begin{tabular}{@{} l}
+% 	[Title of Editor]\ [Name of Editor] \\
+% 	Editor-in-chief \\
+% 	\textit{IEEE Transactions on Circuits and Systems Part II: Express Briefs}
+% \end{tabular}
+
+\bigskip % Vertical whitespace
+
+Dear Editor,
+
+\bigskip % Vertical whitespace
+
+%----------------------------------------------------------------------------------------
+%	LETTER CONTENT
+%----------------------------------------------------------------------------------------
+
+The manuscript titled ``\textit{Thread-Adaptive: Optimized Parallel Architectures of SLH-DSA on GPUs}'' is submitted for consideration to \textit{IEEE Transactions on Circuits and Systems Part II: Express Briefs}. All co-authors have reviewed and approved this submission, and the manuscript is not under consideration by any other publication.
+
+\textcolor{red}{The manuscript presents novel optimization techniques for implementing block ciphers on IoT microprocessors, with specific focus on bitsliced SPN-Cipher implementations. Three primary contributions are presented: (1) an innovative permutation layer optimization method for SPN-Ciphers, (2) a novel encoding model for SPN-Cipher S-boxes, and (3) a lightweight benchmarking framework for comprehensive performance evaluation. The proposed techniques achieved a 9.7\% latency reduction in AES implementation, demonstrating significant performance improvements over existing approaches.}
+
+The manuscript has been prepared in accordance with \textit{IEEE Transactions on Circuits and Systems Part II: Express Briefs} guidelines. All content has been thoroughly reviewed for technical accuracy and linguistic clarity. All necessary ethical approvals have been obtained, and all data and materials will be made available upon request.
+
+\textcolor{red}{The selection of \textit{IEEE Transactions on Circuits and Systems Part II: Express Briefs} as the target venue was motivated by its established reputation in computer architecture and system optimization research. The manuscript's focus on microprocessor optimization and cryptographic implementation aligns with the journal's scope and readership.}
+
+Your time and consideration are greatly appreciated. Please do not hesitate to request any additional information or clarification.
+
+\bigskip % Vertical whitespace
+
+Sincerely yours,
+
+\vspace{20pt} % Vertical whitespace
+
+
+Lang Li \\
+College of Computer Science and Engineering\\
+Hengyang Normal University, China \\
+
+
+\end{document}
+
+% To PIZZA, a famous fat-ass cat who lived in Dorm 12.

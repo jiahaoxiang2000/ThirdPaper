@@ -1,6 +1,6 @@
 # submit
 
-here we first want to submit is the _IEEE Trans. Circuits Syst. II Express Briefs_.
+here we first want to submit is the _IEEE Transactions on Circuits and Systems Part II: Express Briefs_.
 
 ## TCAS-II
 
