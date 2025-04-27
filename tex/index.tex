@@ -31,6 +31,8 @@
 \usepackage{tikz}
 \usetikzlibrary{shapes,arrows,positioning,calc,shadows,decorations.pathreplacing,fit}
 \usepackage{multirow}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
 
 \begin{document}
 
@@ -61,9 +63,8 @@
   This research presents a GPU-accelerated implementation of SLH-DSA that employs a thread-adaptive parallelization methodology to maximize throughput.
   In contrast to conventional approaches utilizing fixed maximum thread allocation, the proposed implementation dynamically optimizes parallelism levels for individual cryptographic  functions, thereby establishing an equilibrium between thread utilization and execution efficiency.
   Furthermore, granular decomposition of signature components is implemented to enhance thread-level execution performance.
-  Performance evaluation conducted on an NVIDIA RTX 4090 GPU demonstrates that the implementation attains a throughput of 62,239 signatures per second for the SHA2-128f parameter set, representing a significant performance improvement over existing methodologies.
+  Performance evaluation conducted on an NVIDIA RTX 4090 GPU demonstrates that the implementation attains a throughput of 62,239 signatures per second for the SHA2-128f parameter set, representing a 1.15$\times$ improvement over state-of-the-art implementations. 
   The empirical results establish GPUs as viable platforms for SLH-DSA acceleration in high-throughput environments, thus facilitating the practical transition to post-quantum cryptographic standards.
-
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -427,33 +428,59 @@ Analysis indicates that Hypertree construction dominates signing latency, accoun
 
 \subsection{Scalability Analysis}
 
-Implementation scalability was evaluated across varying security parameters and computational complexities. Table \ref{tab:scalability} presents execution metrics for signature generation across different parameter sets.
-
-\begin{table}[h]
+\begin{figure}[h]
   \centering
-  \caption{Scalability Across SLH-DSA Signature Parameter Sets}
-  \label{tab:scalability}
-  \begin{tabular}{@{}lcc@{}}
-    \toprule
-    \textbf{Parameter Set} & \textbf{Latency (ms)} & \textbf{Throughput (tasks/sec)} \\
-    \midrule
-    SHA2-128s \cite{Wang2025} & 12,185.35 & 2,689 \\
-    SHA2-128s & 9,125.94 & 3,591 \\
-    \midrule
-    SHA2-192f \cite{Wang2025} & 1,067.26 & 30,703 \\
-    SHA2-192f & 977.45 & 33,524 \\
-    \midrule
-    SHA2-192s \cite{Wang2025} & 21,252.11 & 1,542 \\
-    SHA2-192s & 18,711.43 & 1,751 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+  \begin{tikzpicture}
+    \begin{axis}[
+      width=0.45\textwidth,
+      height=6cm,
+      ybar=0pt,
+      ylabel={Throughput (tasks/sec)},
+      xlabel={},
+      symbolic x coords={128s, 128s-old, 192f, 192f-old, 192s, 192s-old},
+      xtick=data,
+      xticklabel style={
+        rotate=30, anchor=east, font=\small,
+        /pgf/number format/1000 sep={}
+      },
+      xticklabels={
+        {SHA2-128s},
+        {SHA2-128s \cite{Wang2025}},
+        {SHA2-192f},
+        {SHA2-192f \cite{Wang2025}},
+        {SHA2-192s},
+        {SHA2-192s \cite{Wang2025}}
+      },
+      ymin=0,
+      ymax=40000,
+      ymajorgrids=true,
+      bar width=12pt,
+      nodes near coords,
+      nodes near coords align={vertical},
+      legend style={at={(0.5,1.05)},anchor=south,legend columns=-1, font=\small},
+      ]
+      \addplot+[fill=gray!40] coordinates {
+        (128s, 3591)
+        (128s-old, 2689)
+        (192f, 33524)
+        (192f-old, 30703)
+        (192s, 1751)
+        (192s-old, 1542)
+      };
+      \legend{Throughput}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Throughput across SLH-DSA parameter sets.}
+  \label{fig:scalability_line}
+\end{figure}
 
-Superior performance was observed across all parameter configurations, with notable improvements for robust variants. The SHA2-128s parameter set exhibited a 25\% latency reduction and 33.5\% throughput enhancement. Thread-adaptive techniques proved most effective for computationally intensive operations with smaller hash sizes. Diminishing returns were observed at higher security levels due to increased synchronization overhead, reflecting an inherent trade-off between security parameters and parallel execution efficiency.
+Implementation scalability was evaluated across varying security parameters and computational complexities. As shown in Fig.~\ref{fig:scalability_line}, throughput improves for all parameter configurations, with the SHA2-128s parameter set achieving 3,591 tasks/sec and SHA2-192f reaching 33,524 tasks/sec. These results indicate that thread-adaptive techniques are most effective for computationally intensive operations with smaller signature sizes, while diminishing returns are observed at higher security levels due to increased synchronization overhead.
 
 \section{Conclusion}\label{sec:conclusion}
 
-A thread-adaptive GPU implementation of SLH-DSA was developed that dynamically allocates computational resources based on cryptographic function profiles while decomposing operations into finely-grained parallel tasks. Performance evaluation on an NVIDIA RTX 4090 GPU demonstrated a throughput of 62,239 signatures per second for SHA2-128f parameters, representing a 15.68\% improvement over state-of-the-art implementations. Empirical analysis identified Hypertree construction as the primary performance bottleneck, accounting for 94\% of signing latency despite component-level optimizations. The implementation exhibited particular efficacy for robust parameter variants, with SHA2-128s showing a 25\% latency reduction and 33.5\% throughput enhancement. These results establish GPU platforms as viable acceleration frameworks for post-quantum cryptographic schemes. Future work will focus on Hypertree structure optimization and performance evaluation across diverse GPU architectures.
+A thread-adaptive GPU implementation of SLH-DSA was developed that dynamically allocates computational resources based on cryptographic function profiles while decomposing operations into finely-grained parallel tasks. 
+\textcolor{blue}{Performance evaluation on an NVIDIA RTX 4090 GPU demonstrated a throughput of 62,239 signatures per second for SHA2-128f parameters, representing a 1.15$\times$ improvement over state-of-the-art implementations. The implementation exhibited particular efficacy for robust parameter variants, with SHA2-128s showing a 1.33$\times$ throughput enhancement and 1.25$\times$ latency reduction. These results establish GPU platforms as viable acceleration frameworks for post-quantum cryptographic schemes.}
+Empirical analysis identified Hypertree construction as the primary performance bottleneck, accounting for 94\% of signing latency despite component-level optimizations. Future work will focus on Hypertree structure optimization and performance evaluation across diverse GPU architectures.
 
 % \section*{Acknowledgments}
 
