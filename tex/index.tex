@@ -161,7 +161,7 @@ SLH-DSA is a stateless hash-based signature scheme that achieves post-quantum se
 
 The SLH-DSA signature generation process, illustrated in Fig.~\ref{fig:sphincs-process}, implements a hierarchical authentication structure. Initially, a message digest is generated through hashing, followed by FORS few-time scheme signing, which produces $k$ authentication paths comprising $t$ elements each. The resulting FORS public key undergoes authentication via a $d$-layer hypertree, where each layer applies WOTS\textsuperscript{+} to sign the lower layer's root. This signature chain terminates at the final root node, enabling efficient verification while maintaining robust hash-based security.
 
-SLH-DSA offers ``small'' (s) and ``fast'' (f) operational modes, where ``small'' denotes reduced signature size and ``fast'' indicates higher signature generation speed, across different parameter sets and security levels \cite{Barker}. Various parameter sets accommodate different requirements regarding signature size, security level, and computational efficiency. All security properties are derived from underlying hash functions, providing resistance to quantum computational attacks.
+SLH-DSA offers ``small'' (s) and ``fast'' (f) operational modes, where ``small'' denotes reduced signature size and ``fast'' indicates higher signature generation speed, across different parameter sets and security levels. Various parameter sets accommodate different requirements regarding signature size, security level, and computational efficiency. All security properties are derived from underlying hash functions, providing resistance to quantum computational attacks.
 
 \subsection{GPU Computing Model}
 
