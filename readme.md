@@ -17,7 +17,7 @@ For more details, please refer to the [background folder](./background/)
 
 _Mon Apr 28 07:33:19 PM HKT 2025_
 
-- [ ] key word, is have the five, more generate used, for the editor to find the reviewer
+- [x] key word, is have the five, more generate used, for the editor to find the reviewer
 - [ ] the abstract start part not attractive, need to change
 
 ## experiment platform
