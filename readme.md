@@ -15,16 +15,10 @@ For more details, please refer to the [background folder](./background/)
 
 ## TODO
 
-_Sun Apr 13 14:16:18 CST 2025_
+_Mon Apr 28 07:33:19 PM HKT 2025_
 
-- [ ] add the metic/view to explain our job, now like use the Primitive Operation Parallel Efficient (POPE) ref issue https://github.com/jiahaoxiang2000/ThirdPaper/issues/2
-  - [ ] improve required: need do more experiment, find the writing angle. _priority 2_
-- [x] finish the experiment section, add the data for figure and table, ref issue https://github.com/jiahaoxiang2000/ThirdPaper/issues/4 _priority 0_
-  - [x] we only need to add the FLP component experiment.
-  - [x] here we also need to reflect the FLP component. on the future, we also need to clean the code for only have our experiment code.
-- [ ] writing improve _priority 1_
-  - [ ] the symbol to same
-  - [ ] special symbol check
+- [ ] key word, is have the five, more generate used, for the editor to find the reviewer
+- [ ] the abstract start part not attractive, need to change
 
 ## experiment platform
 
