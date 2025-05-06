@@ -64,7 +64,7 @@
   This research presents a GPU-accelerated implementation of SLH-DSA utilizing two complementary optimization strategies.
   First, Adaptive Thread Allocation dynamically calibrates parallelism levels through empirical performance modeling, balancing computational acceleration against synchronization overhead for each cryptographic operation.
   Second, Function-Level Parallelism decomposes WOTS\textsuperscript{+}, FORS, and Hypertree components into fine-grained concurrent tasks with optimized memory access patterns, reducing execution latency.
-  Performance evaluation on an NVIDIA RTX 4090 GPU demonstrates a throughput of 62,239 signatures per second for the SHA2-128f parameter set, representing a 1.15$\times$ improvement over state-of-the-art implementations.
+  Performance evaluation on an NVIDIA RTX 4090 GPU demonstrates a throughput of 62,239 signatures per second for the SHA2-128f parameter set, representing a 1.16$\times$ improvement over state-of-the-art implementations.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -89,16 +89,19 @@ Subsequently, Wang et al.~\cite{Wang2025} introduced CUSPX, a sophisticated thre
 
 \subsection{Contributions}
 
-Current GPU implementations of SLH-DSA exhibit two critical efficiency limitations. First, uniform thread allocation across cryptographic operations disregards their heterogeneous computational characteristics, resulting in resource contention for complex operations and underutilization for simpler functions. Second, performance bottlenecks persist throughout the SLH-DSA hierarchy due to insufficient component-level parallelism. Without fine-grained parallelization of WOTS\textsuperscript{+}, FORS, and Hypertree components, inherent concurrency opportunities remain unexploited. These constraints necessitate an adaptive approach that dynamically configures thread allocation while decomposing operations into parallelizable tasks to maximize resource utilization across the signature generation workflow.
-This paper presents a thread-adaptive GPU-based implementation of SLH-DSA with the following key contributions:
+Current GPU implementations of SLH-DSA exhibit two critical efficiency limitations. 
+First, uniform thread allocation across cryptographic operations disregards their heterogeneous computational characteristics, resulting in resource contention for complex operations and under utilization for simpler functions. 
+Second, performance bottlenecks persist throughout the SLH-DSA hierarchy due to insufficient component-level parallelism. 
+Without fine-grained parallelization of WOTS\textsuperscript{+}, FORS, and Hypertree components, inherent concurrency opportunities remain unexploited. 
+These constraints necessitate an adaptive approach that dynamically configures thread allocation while decomposing operations into parallelizable tasks to maximize resource utilization across the signature generation workflow.
+This paper presents a Thread-Adaptive GPU-based implementation of SLH-DSA with the following key contributions:
 
 \begin{enumerate}
   \item An Adaptive Thread Allocation (ATA) methodology that optimizes thread configurations for individual cryptographic operations based on their computational characteristics, effectively balancing parallelism with execution efficiency to reduce resource contention and kernel launch overhead, thereby improving overall throughput.
 
   \item A Function-Level Parallelism (FLP) approach that decomposes cryptographic operations into independent computational tasks, addressing inefficiencies not only at the top-level but also within fine-grained components, which further reduces latency and enhances the performance of core SLH-DSA primitives.
 
-  \item Performance evaluation on NVIDIA GPU architecture demonstrating a throughput of 62,239 SLH-DSA signatures per second (for SHA2-128f), representing substantial improvement over state-of-the-art implementations.
-    The complete implementation is available as an open-source repository at \url{https://github.com/jiahaoxiang2000/sphincs-plus}.
+  \item Performance evaluation on NVIDIA GPU architecture demonstrating a throughput of 62,239 SLH-DSA signatures per second, representing 1.16$\times$ improvement over state-of-the-art implementations. The complete implementation is available as an open-source repository at \url{https://github.com/jiahaoxiang2000/sphincs-plus}.
 \end{enumerate}
 
 The paper is structured as follows: Section~\ref{sec:preliminaries} presents the fundamental concepts of the SLH-DSA signature scheme; Section~\ref{sec:implementation} describes the architectural design and implementation details; Section~\ref{sec:evaluation} analyzes performance results and comparative metrics; and Section~\ref{sec:conclusion} summarizes findings and discusses future research directions.
@@ -167,7 +170,7 @@ The CUDA framework enhances computational throughput through memory optimization
 
 \section{Optimized Implementation of SLH-DSA}\label{sec:implementation}
 
-The thread-adaptive parallelization architecture for SLH-DSA, illustrated in Fig.~\ref{fig:optimization_architecture}, consists of three hierarchical layers. The top layer represents cryptographic operations, with the Sign operation emphasized. The middle layer applies Adaptive Thread Allocation (ATA), distributing dynamically optimized thread configurations across $t$ parallel instances. The bottom layer employs Function-Level Parallelism (FLP), decomposing operations into algorithmic components—FORS, WOTS\textsuperscript{+}, and Hypertree—with each component mapped to multiple GPU warps of 32 threads. This structure enables efficient resource utilization and fine-grained parallel execution for SLH-DSA on GPU platforms.
+The Thread-Adaptive parallelization architecture for SLH-DSA, illustrated in Fig.~\ref{fig:optimization_architecture}, consists of three hierarchical layers. The top layer represents cryptographic operations, with the Sign operation emphasized. The middle layer applies ATA, distributing dynamically optimized thread configurations across $t$ parallel instances. The bottom layer employs FLP, decomposing operations into algorithmic components—WOTS\textsuperscript{+}, FORS, and Hypertree—with each component mapped to multiple GPU warps of 32 threads.
 
 \begin{figure}[htbp]
   \centering
@@ -306,7 +309,7 @@ Function-Level Parallelism  decomposes cryptographic operations into granular co
 
 \subsubsection{WOTS\texorpdfstring{$^+$}{+} Parallelization}
 
-The WOTS$^+$ implementation facilitates concurrent computation of $l$ independent hash chains by allocating individual chains or chain segments to distinct GPU threads. After hash chain computation completion, results are consolidated into leaf nodes using GPU shared memory rather than global memory to minimize access latencies. For hypertree structures, multiple Merkle tree WOTS$^+$ public keys are generated simultaneously, with shared memory buffers optimizing authentication path construction. This approach differs significantly from previous implementations \cite{Kim2024}.
+The WOTS$^+$ implementation facilitates concurrent computation of $l$ independent hash chains by allocating individual chains or chain segments to distinct GPU threads. After hash chain computation completion, results are consolidated into leaf nodes using GPU shared memory rather than global memory to minimize access latencies. For hypertree structures, concurrent generation of multiple Merkle tree WOTS$^+$ public keys is facilitated through shared memory buffer utilization, thereby optimizing authentication path construction while significantly reducing memory access latency compared to previous implementations \cite{Kim2024}.
 
 \subsubsection{FORS Parallelization}
 
@@ -314,7 +317,7 @@ The FORS component implementation employs fine-grained parallelism for generatin
 
 \subsubsection{Hypertree Parallelization}
 
-For the hypertree construction, parallel processing is applied across multiple Merkle trees spanning all $d$ layers. The leaf nodes are initially generated through parallel hash chain computations before being consolidated into tree structures. Due to shared memory constraints preventing full parallelization of all nodes across all layers, a semi-parallel approach was implemented. This methodology differs from the full-node parallelization presented in \cite{Wang2025} by employing a hierarchical execution strategy where each thread processes four-node combinations rather than two-node combinations, thereby reducing synchronization overhead.
+For the hypertree construction, parallel processing is applied across multiple Merkle trees spanning all $d$ layers. The leaf nodes are initially generated through parallel hash chain computations before being consolidated into tree structures. Due to shared memory constraints preventing full parallelization of all nodes across all layers, a semi-parallel approach was implemented. This methodology differs from the full-node parallelization presented in \cite{Wang2025} by employing a hierarchical execution strategy where each thread processes four-node combinations rather than two-node combinations.
 
 
 \section{Performance Evaluation}\label{sec:evaluation}
@@ -343,7 +346,7 @@ For SHA2-128f, key generation, signature generation, and verification latencies 
     SHA2-128f, 2024 \cite{Kim2024}, 512  & 0.71 & 11.53 & 1.79 & 725,118 (55\%) & 44,391 (97\%) & 285,681 (81\%) & RTX 3090 \\
     SHA2-128f, 2025 \cite{Wang2025}, 41,984 & 32.07 & 924.24 & 119.16 & 1,309,136 (100\%) & 45,425 (100\%) & 352,333 (100\%) & RTX 3090 \\
     SHA2-128f, 2025 \cite{Wang2025}$^\dagger$, 32,768 & 22.82 & 609.03 & 72.51 & 1,435,690 (109.7\%) & 53,804 (118.4\%) & 451,883 (128.3\%) & RTX 4090 \\
-    SHA2-128f, This work, 32,768 & 20.64 & 526.48 & 65.24 & \textbf{1,587,849} (\textbf{121.3\%}) & \textbf{62,239} (\textbf{137.0\%}) & \textbf{502,243} (\textbf{142.5\%}) & RTX 4090 \\
+    SHA2-128f, \textbf{This work}, 32,768 & 20.64 & 526.48 & 65.24 & \textbf{1,587,849} (\textbf{121.3\%}) & \textbf{62,239} (\textbf{137.0\%}) & \textbf{502,243} (\textbf{142.5\%}) & RTX 4090 \\
     \bottomrule
   \end{tabular}
   \begin{tablenotes}
@@ -459,12 +462,12 @@ Analysis indicates that Hypertree construction dominates signing latency, accoun
   \label{fig:scalability_line}
 \end{figure}
 
-Implementation scalability was evaluated across varying security parameters and computational complexities. As shown in Fig.~\ref{fig:scalability_line}, throughput improves for all parameter configurations, with the SHA2-128s parameter set achieving 3,591 tasks/sec and SHA2-192f reaching 33,524 tasks/sec. These results indicate that thread-adaptive techniques are most effective for computationally intensive operations with smaller signature sizes, while diminishing returns are observed at higher security levels due to increased synchronization overhead.
+Implementation scalability was evaluated across varying security parameters and computational complexities. As shown in Fig.~\ref{fig:scalability_line}, throughput improves for all parameter configurations, with the SHA2-128s parameter set achieving 3,591 tasks/sec and SHA2-192f reaching 33,524 tasks/sec. These results indicate that Thread-Adaptive techniques are most effective for computationally intensive operations with smaller signature sizes, while diminishing returns are observed at higher security levels due to increased computing complexity.
 
 \section{Conclusion}\label{sec:conclusion}
 
-A thread-adaptive GPU implementation of SLH-DSA was developed that dynamically allocates computational resources based on cryptographic function profiles while decomposing operations into finely-grained parallel tasks.
-Performance evaluation on an NVIDIA RTX 4090 GPU demonstrated a throughput of 62,239 signatures per second for SHA2-128f parameters, representing a 1.15$\times$ improvement over state-of-the-art implementations. The implementation exhibited particular efficacy for robust parameter variants, with SHA2-128s showing a 1.33$\times$ throughput enhancement and 1.25$\times$ latency reduction. These results establish GPU platforms as viable acceleration frameworks for post-quantum cryptographic schemes.
+A Thread-Adaptive GPU implementation of SLH-DSA was developed that dynamically allocates computational resources based on cryptographic function profiles while decomposing operations into finely-grained parallel tasks.
+Performance evaluation on an NVIDIA RTX 4090 GPU demonstrated a throughput of 62,239 signatures per second for SHA2-128f parameters, representing a 1.16$\times$ improvement over state-of-the-art implementations. The implementation exhibited particular efficacy for robust parameter variants, with SHA2-128s showing a 1.33$\times$ throughput enhancement and 1.25$\times$ latency reduction. These results establish GPU platforms as viable acceleration frameworks for post-quantum cryptographic schemes.
 Empirical analysis identified Hypertree construction as the primary performance bottleneck, accounting for 94\% of signing latency despite component-level optimizations. Future work will focus on Hypertree structure optimization and performance evaluation across diverse GPU architectures.
 
 % \section*{Acknowledgments}
