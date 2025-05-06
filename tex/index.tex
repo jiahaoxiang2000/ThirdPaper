@@ -59,17 +59,17 @@
 \maketitle
 
 \begin{abstract}
-  The imminent threat posed by quantum computing necessitates an urgent transition to Post-Quantum Cryptography (PQC) to safeguard sensitive data against future cryptanalytic attacks.
-  The stateless hash-based digital signature algorithm (SLH-DSA) FIPS 205, while quantum-resistant, presents significant computational challenges for practical deployment.
+  Quantum computing threatens classical cryptography, creating urgency for Post-Quantum Cryptography adoption before encrypted data harvesting enables future decryption. 
+  The FIPS 205 Stateless Hash-based Digital Signature Algorithm offers quantum resistance but faces performance bottlenecks impeding widespread implementation.
   This research presents a GPU-accelerated implementation of SLH-DSA that employs a thread-adaptive parallelization methodology to maximize throughput.
   In contrast to conventional approaches utilizing fixed maximum thread allocation, the proposed implementation dynamically optimizes parallelism levels for individual cryptographic  functions, thereby establishing an equilibrium between thread utilization and execution efficiency.
   Furthermore, granular decomposition of signature components is implemented to enhance thread-level execution performance.
-  Performance evaluation conducted on an NVIDIA RTX 4090 GPU demonstrates that the implementation attains a throughput of 62,239 signatures per second for the SHA2-128f parameter set, representing a 1.15$\times$ improvement over state-of-the-art implementations. 
+  Performance evaluation conducted on an NVIDIA RTX 4090 GPU demonstrates that the implementation attains a throughput of 62,239 signatures per second for the SHA2-128f parameter set, representing a 1.15$\times$ improvement over state-of-the-art implementations.
   The empirical results establish GPUs as viable platforms for SLH-DSA acceleration in high-throughput environments, thus facilitating the practical transition to post-quantum cryptographic standards.
 \end{abstract}
 
 \begin{IEEEkeywords}
-  \blue{Post-quantum cryptography, FIPS 205, Stateless hash-based signature, Parallel computing, GPU.}
+  Post-quantum cryptography, FIPS 205, Stateless hash-based signature, Parallel computing, GPU.
 \end{IEEEkeywords}
 
 \section{Introduction}
@@ -332,7 +332,7 @@ Testing utilized standardized NIST parameter sets for SLH-DSA at security levels
 \subsection{Comparative Performance Analysis}
 
 The implementation was benchmarked against state-of-the-art alternatives using SHA2-128f parameters. Table \ref{tab:comparative_perf} presents latency and throughput metrics across comparable hardware platforms.
-Consistent performance improvements were observed across all cryptographic operations compared to reference implementations on identical hardware. 
+Consistent performance improvements were observed across all cryptographic operations compared to reference implementations on identical hardware.
 For SHA2-128f, key generation, signature generation, and verification latencies were reduced, and corresponding throughput was increased. Specifically, compared to Kim et al.~\cite{Kim2024}, the throughput of our implementation is 2.20$\times$ for key generation, 1.41$\times$ for signature generation, and 1.76$\times$ for verification. Compared to Wang et al.~\cite{Wang2025}, the throughput is 1.11$\times$, 1.16$\times$, and 1.43$\times$ for key generation, signature generation, and verification, respectively, on the same hardware (RTX 4090).
 
 \begin{table*}[htpb]
@@ -468,7 +468,7 @@ Implementation scalability was evaluated across varying security parameters and 
 
 \section{Conclusion}\label{sec:conclusion}
 
-A thread-adaptive GPU implementation of SLH-DSA was developed that dynamically allocates computational resources based on cryptographic function profiles while decomposing operations into finely-grained parallel tasks. 
+A thread-adaptive GPU implementation of SLH-DSA was developed that dynamically allocates computational resources based on cryptographic function profiles while decomposing operations into finely-grained parallel tasks.
 Performance evaluation on an NVIDIA RTX 4090 GPU demonstrated a throughput of 62,239 signatures per second for SHA2-128f parameters, representing a 1.15$\times$ improvement over state-of-the-art implementations. The implementation exhibited particular efficacy for robust parameter variants, with SHA2-128s showing a 1.33$\times$ throughput enhancement and 1.25$\times$ latency reduction. These results establish GPU platforms as viable acceleration frameworks for post-quantum cryptographic schemes.
 Empirical analysis identified Hypertree construction as the primary performance bottleneck, accounting for 94\% of signing latency despite component-level optimizations. Future work will focus on Hypertree structure optimization and performance evaluation across diverse GPU architectures.
 
