@@ -60,16 +60,15 @@
 
 \begin{abstract}
   Quantum computing threatens classical cryptography, creating urgency for Post-Quantum Cryptography adoption before encrypted data harvesting enables future decryption. 
-  The FIPS 205 Stateless Hash-based Digital Signature Algorithm offers quantum resistance but faces performance bottlenecks impeding widespread implementation.
-  This research presents a GPU-accelerated implementation of SLH-DSA that employs a thread-adaptive parallelization methodology to maximize throughput.
-  In contrast to conventional approaches utilizing fixed maximum thread allocation, the proposed implementation dynamically optimizes parallelism levels for individual cryptographic  functions, thereby establishing an equilibrium between thread utilization and execution efficiency.
-  Furthermore, granular decomposition of signature components is implemented to enhance thread-level execution performance.
-  Performance evaluation conducted on an NVIDIA RTX 4090 GPU demonstrates that the implementation attains a throughput of 62,239 signatures per second for the SHA2-128f parameter set, representing a 1.15$\times$ improvement over state-of-the-art implementations.
-  The empirical results establish GPUs as viable platforms for SLH-DSA acceleration in high-throughput environments, thus facilitating the practical transition to post-quantum cryptographic standards.
+  The FIPS 205 Stateless Hash-based Digital Signature Algorithm (SLH-DSA) offers quantum resistance but faces performance bottlenecks impeding widespread implementation.
+  This research presents a GPU-accelerated implementation of SLH-DSA utilizing two complementary optimization strategies.
+  First, Adaptive Thread Allocation dynamically calibrates parallelism levels through empirical performance modeling, balancing computational acceleration against synchronization overhead for each cryptographic operation.
+  Second, Function-Level Parallelism decomposes WOTS\textsuperscript{+}, FORS, and Hypertree components into fine-grained concurrent tasks with optimized memory access patterns, reducing execution latency.
+  Performance evaluation on an NVIDIA RTX 4090 GPU demonstrates a throughput of 62,239 signatures per second for the SHA2-128f parameter set, representing a 1.15$\times$ improvement over state-of-the-art implementations.
 \end{abstract}
 
 \begin{IEEEkeywords}
-  Post-quantum cryptography, FIPS 205, Stateless hash-based signature, Parallel computing, GPU.
+  Post-quantum cryptography, FIPS 205, Stateless hash-based signature, Implementation, Parallel computing.
 \end{IEEEkeywords}
 
 \section{Introduction}
@@ -78,23 +77,19 @@
 \IEEEPARstart{Q}{uantum} computers pose a significant threat to current cryptographic systems through their ability to efficiently solve mathematical problems that underpin modern security protocols. This threat materializes in the anticipated ``Q-Day", when quantum computers attain sufficient computational power to compromise public encryption systems safeguarding digital communications, authentication mechanisms, and key exchange protocols. Widely deployed public-key cryptosystems such as RSA and ECC are particularly vulnerable to Shor's algorithm, which can efficiently factor large integers and compute discrete logarithms problems considered computationally infeasible using classical computing approaches \cite{Yang2023}.
 In response to these vulnerabilities, the National Institute of Standards and Technology (NIST) initiated the Post-Quantum Cryptography (PQC) standardization process to develop cryptographic schemes resistant to quantum computing capabilities. The imminent threat of encrypted data being harvested now for future decryption once quantum computing matures makes the transition to post-quantum cryptography increasingly urgent for protecting sensitive information and maintaining long-term data security.
 
-SPHINCS\textsuperscript{+}, a prominent stateless hash-based signature scheme and NIST standardization finalist \cite{Yesina}, provides robust quantum-attack resistance through secure cryptographic hash functions \cite{Bernstein2019}. This scheme subsequently formed the foundation for the Stateless Hash-based Digital Signature Algorithm (SLH-DSA), now standardized as FIPS 205 \cite{FIPS205}. The computational intensity of these hash-based signatures has necessitated research into efficient implementations across various hardware platforms, including CPUs, FPGAs, and GPUs \cite{Joseph2022}, to facilitate organizational transitions to post-quantum cryptographic solutions.
+SPHINCS\textsuperscript{+}, a prominent stateless hash-based signature scheme and NIST standardization finalist \cite{Yesina}, provides robust quantum-attack resistance through secure cryptographic hash functions \cite{Bernstein2019}. This scheme subsequently formed the foundation for the Stateless Hash-based Digital Signature Algorithm, now standardized as FIPS 205 \cite{FIPS205}. The computational intensity of these hash-based signatures has necessitated research into efficient implementations across various hardware platforms, including CPUs, FPGAs, and GPUs \cite{Joseph2022}, to facilitate organizational transitions to post-quantum cryptographic solutions.
 
 \subsection{Related Work}
 
 GPU acceleration techniques have been extensively employed for cryptographic algorithms, with notable implementations for conventional primitives such as AES \cite{Lee2022a}. These acceleration methodologies have subsequently been adapted for post-quantum cryptography, particularly SLH-DSA, where implementation approaches have evolved substantially in recent years.
-Lee and Hwang~\cite{Lee2022} established the fundamental parallel implementation techniques for hash-based signatures, demonstrating the viability of GPU acceleration for post-quantum cryptography. Building on this foundation, Kim et al.~\cite{Kim2024} developed parallel methods for critical SLH-DSA components—specifically FORS, WOTS\textsuperscript{+}, and Merkle tree computations. Their implementation on the NVIDIA RTX 3090 achieved significant throughput improvements, despite efficiency constraints from multiple kernel invocations.
+Lee and Hwang~\cite{Lee2022} established the fundamental parallel implementation techniques for SLH-DSA, demonstrating the viability of GPU acceleration for post-quantum cryptography. Building on this foundation, Kim et al.~\cite{Kim2024} developed parallel methods for critical SLH-DSA components—specifically FORS, WOTS\textsuperscript{+}, and Merkle tree computations. Their implementation on the NVIDIA RTX 3090 achieved significant throughput improvements, despite efficiency constraints from multiple kernel invocations.
 
 Subsequently, Wang et al.~\cite{Wang2025} introduced CUSPX, a sophisticated three-level parallelism framework integrating algorithmic, data, and hybrid parallelization approaches. Their implementation featured optimized parallel Merkle tree construction algorithms and strategic load-balancing techniques, resulting in substantial performance enhancements.
 
-\subsection{Motivation}
-
-Existing GPU implementations of SLH-DSA exhibit two principal efficiency constraints. First, conventional approaches employ uniform thread allocation across all cryptographic operations, disregarding the distinct computational characteristics of individual functions. This static resource allocation results in imbalances, as certain operations experience excessive synchronization overhead while others underutilize available computational resources.
-
-Second, inefficiencies are not limited to the top-level operations but also manifest within the finer-grained components of the SLH-DSA hierarchy. Without adaptive parallelization, both high-level and component-level tasks suffer from suboptimal thread utilization and increased latency. These limitations indicate the necessity for an adaptive parallelization approach that dynamically determines optimal thread configurations for specific cryptographic functions and enables fine-grained decomposition of signature components.
 
 \subsection{Contributions}
 
+Current GPU implementations of SLH-DSA exhibit two critical efficiency limitations. First, uniform thread allocation across cryptographic operations disregards their heterogeneous computational characteristics, resulting in resource contention for complex operations and underutilization for simpler functions. Second, performance bottlenecks persist throughout the SLH-DSA hierarchy due to insufficient component-level parallelism. Without fine-grained parallelization of WOTS\textsuperscript{+}, FORS, and Hypertree components, inherent concurrency opportunities remain unexploited. These constraints necessitate an adaptive approach that dynamically configures thread allocation while decomposing operations into parallelizable tasks to maximize resource utilization across the signature generation workflow.
 This paper presents a thread-adaptive GPU-based implementation of SLH-DSA with the following key contributions:
 
 \begin{enumerate}
