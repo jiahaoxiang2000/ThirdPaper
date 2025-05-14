@@ -2,6 +2,14 @@
 
 here we first want to submit is the _IEEE Transactions on Circuits and Systems Part II: Express Briefs_.
 
+## Find a journal for letter
+
+first ask it by the email, and then submit the paper.
+
+- IEEE Computer Architecture Letters, Q4, much close
+- IEEE Communications Letters, Q3, close to code crypto, maybe rejected by scope
+- IEEE Embedded Systems Letters, Q4, close to embedded systems, not much close
+
 ## TCAS-II
 
 ### Material preparation
