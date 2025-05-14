@@ -17,3 +17,18 @@ here we first want to submit is the _IEEE Transactions on Circuits and Systems P
   - DCS120B0 — Cryptography hardware and implementation
   - DCS120A5 — Cryptography architectures
   - CAD250 — New, emerging or specialized design techniques
+
+### Submission to TCAS-II
+
+**Journal:** IEEE Transactions on Circuits and Systems II: Express Briefs (TCAS-II)
+
+- **Submission date:** Thu, May 8, 2025, 05:34:03 PM CST
+- **Decision:** Rejected on Wed, May 14, 2025, 08:35:48 AM HKT
+
+> **Reason for rejection:**  
+> Unfortunately, this paper does not fit well within the scope of the journal. The scientific content related to the circuits & system field is very limited. As it is, it seems more suitable for the Computer community.
+
+**Submission rationale:**  
+We identified a similar paper published in TCAS-II:  
+[Efficient implementation of AES-CTR and AES-ECB on GPUs with applications for high-speed FrodoKEM and exhaustive key search](https://ieeexplore.ieee.org/abstract/document/9749135) on 2022.  
+However, the editor indicated that our paper does not align with the journal's scope, so we need to seek another journal for submission.
