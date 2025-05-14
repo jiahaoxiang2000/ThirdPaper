@@ -11,6 +11,8 @@ You can check the current submission status on the [status check page](https://i
 - Submitted to TCAS-II on Thu May 8, 2025, 05:34:03 PM CST.
 - Rejected by TCAS-II on Wed May 14 08:35:48 AM HKT 2025.
 
+> **Reject reason.** Unfortunately, this paper does not fit well within the scope of the journal. The scientific content related to the circuits & system field is very limited. As it is, it seems more suitable for the Computer community.
+
 ## TODO
 
 _Wed May 14 08:39:10 AM HKT 2025_
